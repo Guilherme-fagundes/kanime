@@ -6,12 +6,18 @@ export default defineConfig({
     lib: {
       entry: 'src/index.js',
       name: 'KAnime',
-      fileName: (format) => `kanime.${format}.js`,
+      formats: ['es', 'umd'],
+      fileName: (format) => {
+        if (format === 'umd') return 'kanime.min.js';  // <-- nome customizado!
+        if (format === 'es') return 'kanime.es.js';
+        return `kanime.${format}.js`;
+      },
     },
+    minify: 'terser', // Minificação garantida
     rollupOptions: {
       output: {
         globals: {
-          // se usar dependências externas, configure aqui
+          // Se usar libs externas, declare aqui
         },
       },
     },
