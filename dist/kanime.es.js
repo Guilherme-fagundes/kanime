@@ -1,216 +1,274 @@
-class g {
-  constructor(e) {
-    this.elements = Array.from(document.querySelectorAll(e)), this.duration = 500;
+class KAnime {
+  constructor(selector) {
+    this.elements = Array.from(document.querySelectorAll(selector));
+    this.duration = 500;
   }
   // Encadeamento
-  each(e) {
-    return this.elements.forEach(e), this;
+  each(callback) {
+    this.elements.forEach(callback);
+    return this;
   }
   // Configurar duração
-  setDuration(e) {
-    return this.duration = e, this;
+  setDuration(ms) {
+    this.duration = ms;
+    return this;
   }
   // Manipulação de eventos
-  on(e, t) {
-    return this.each((s) => s.addEventListener(e, t));
+  on(event, handler) {
+    return this.each((el) => el.addEventListener(event, handler));
   }
   // Mouse events
-  onClick(e) {
-    return this.on("click", e);
+  onClick(handler) {
+    return this.on("click", handler);
   }
-  onMouseEnter(e) {
-    return this.on("mouseenter", e);
+  onMouseEnter(handler) {
+    return this.on("mouseenter", handler);
   }
-  onMouseLeave(e) {
-    return this.on("mouseleave", e);
+  onMouseLeave(handler) {
+    return this.on("mouseleave", handler);
   }
-  onMouseMove(e) {
-    return this.on("mousemove", e);
+  onMouseMove(handler) {
+    return this.on("mousemove", handler);
   }
-  onMouseDown(e) {
-    return this.on("mousedown", e);
+  onMouseDown(handler) {
+    return this.on("mousedown", handler);
   }
-  onMouseUp(e) {
-    return this.on("mouseup", e);
+  onMouseUp(handler) {
+    return this.on("mouseup", handler);
   }
   // Keyboard events
-  onKeyDown(e) {
-    return this.on("keydown", e);
+  onKeyDown(handler) {
+    return this.on("keydown", handler);
   }
-  onKeyUp(e) {
-    return this.on("keyup", e);
+  onKeyUp(handler) {
+    return this.on("keyup", handler);
   }
-  onKeyPress(e) {
-    return this.on("keypress", e);
+  onKeyPress(handler) {
+    return this.on("keypress", handler);
   }
   // Manipulação de estilo
-  css(e, t) {
-    return t === void 0 ? window.getComputedStyle(this.elements[0])[e] : this.each((s) => s.style[e] = t);
+  css(property, value) {
+    if (value === void 0) {
+      return window.getComputedStyle(this.elements[0])[property];
+    }
+    return this.each((el) => el.style[property] = value);
   }
   // Manipulação de classes
-  addClass(e) {
-    return this.each((t) => t.classList.add(e));
+  addClass(className) {
+    return this.each((el) => el.classList.add(className));
   }
-  removeClass(e) {
-    return this.each((t) => t.classList.remove(e));
+  removeClass(className) {
+    return this.each((el) => el.classList.remove(className));
   }
-  toggleClass(e) {
-    return this.each((t) => t.classList.toggle(e));
+  toggleClass(className) {
+    return this.each((el) => el.classList.toggle(className));
   }
   // Mostrar e esconder
   show() {
-    return this.each((e) => e.style.display = "block");
+    return this.each((el) => el.style.display = "block");
   }
   hide() {
-    return this.each((e) => e.style.display = "none");
+    return this.each((el) => el.style.display = "none");
   }
   // Manipulação de conteúdo
-  html(e) {
-    return e === void 0 ? this.elements[0].innerHTML : this.each((t) => t.innerHTML = e);
+  html(content) {
+    if (content === void 0) {
+      return this.elements[0].innerHTML;
+    }
+    return this.each((el) => el.innerHTML = content);
   }
-  text(e) {
-    return e === void 0 ? this.elements[0].innerText : this.each((t) => t.innerText = e);
+  text(content) {
+    if (content === void 0) {
+      return this.elements[0].innerText;
+    }
+    return this.each((el) => el.innerText = content);
   }
   // Manipulação de atributos
-  attr(e, t) {
-    return t === void 0 ? this.elements[0].getAttribute(e) : this.each((s) => s.setAttribute(e, t));
+  attr(attribute, value) {
+    if (value === void 0) {
+      return this.elements[0].getAttribute(attribute);
+    }
+    return this.each((el) => el.setAttribute(attribute, value));
   }
-  removeAttr(e) {
-    return this.each((t) => t.removeAttribute(e));
+  removeAttr(attribute) {
+    return this.each((el) => el.removeAttribute(attribute));
   }
   // FADE IN
   fadeIn() {
-    return this.each((e) => {
-      e.style.opacity = 0, e.style.display = "block";
-      let t = +/* @__PURE__ */ new Date();
-      const s = () => {
-        e.style.opacity = +e.style.opacity + (/* @__PURE__ */ new Date() - t) / this.duration, t = +/* @__PURE__ */ new Date(), +e.style.opacity < 1 ? requestAnimationFrame(s) : e.style.opacity = 1;
+    return this.each((el) => {
+      el.style.opacity = 0;
+      el.style.display = "block";
+      let last = +/* @__PURE__ */ new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity + (/* @__PURE__ */ new Date() - last) / this.duration;
+        last = +/* @__PURE__ */ new Date();
+        if (+el.style.opacity < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 1;
+        }
       };
-      s();
+      tick();
     });
   }
   // FADE OUT
   fadeOut() {
-    return this.each((e) => {
-      e.style.opacity = 1;
-      let t = +/* @__PURE__ */ new Date();
-      const s = () => {
-        e.style.opacity = +e.style.opacity - (/* @__PURE__ */ new Date() - t) / this.duration, t = +/* @__PURE__ */ new Date(), +e.style.opacity > 0 ? requestAnimationFrame(s) : (e.style.opacity = 0, e.style.display = "none");
+    return this.each((el) => {
+      el.style.opacity = 1;
+      let last = +/* @__PURE__ */ new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity - (/* @__PURE__ */ new Date() - last) / this.duration;
+        last = +/* @__PURE__ */ new Date();
+        if (+el.style.opacity > 0) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 0;
+          el.style.display = "none";
+        }
       };
-      s();
+      tick();
     });
   }
   // SLIDE UP
   slideUp() {
-    return this.each((e) => {
-      e.style.height = e.offsetHeight + "px", e.style.transition = `height ${this.duration}ms ease`, e.offsetHeight, e.style.overflow = "hidden", e.style.height = "0", setTimeout(() => {
-        e.style.display = "none", e.style.removeProperty("height"), e.style.removeProperty("overflow"), e.style.removeProperty("transition");
+    return this.each((el) => {
+      el.style.height = el.offsetHeight + "px";
+      el.style.transition = `height ${this.duration}ms ease`;
+      el.offsetHeight;
+      el.style.overflow = "hidden";
+      el.style.height = "0";
+      setTimeout(() => {
+        el.style.display = "none";
+        el.style.removeProperty("height");
+        el.style.removeProperty("overflow");
+        el.style.removeProperty("transition");
       }, this.duration);
     });
   }
   // SLIDE DOWN
   slideDown() {
-    return this.each((e) => {
-      e.style.display = "block";
-      const t = e.scrollHeight;
-      e.style.height = "0", e.style.overflow = "hidden", e.style.transition = `height ${this.duration}ms ease`, e.offsetHeight, e.style.height = t + "px", setTimeout(() => {
-        e.style.removeProperty("height"), e.style.removeProperty("overflow"), e.style.removeProperty("transition");
+    return this.each((el) => {
+      el.style.display = "block";
+      const height = el.scrollHeight;
+      el.style.height = "0";
+      el.style.overflow = "hidden";
+      el.style.transition = `height ${this.duration}ms ease`;
+      el.offsetHeight;
+      el.style.height = height + "px";
+      setTimeout(() => {
+        el.style.removeProperty("height");
+        el.style.removeProperty("overflow");
+        el.style.removeProperty("transition");
       }, this.duration);
     });
   }
   // Verificações
   // Verifica se o elemento está visível
   isVisible() {
-    return this.elements.some((e) => window.getComputedStyle(e).display !== "none" && e.offsetHeight > 0);
+    return this.elements.some((el) => {
+      return window.getComputedStyle(el).display !== "none" && el.offsetHeight > 0;
+    });
   }
   // Verifica se o elemento contém uma classe
-  hasClass(e) {
-    return this.elements.some((t) => t.classList.contains(e));
+  hasClass(className) {
+    return this.elements.some((el) => el.classList.contains(className));
   }
   // Verifica se o elemento contém um atributo específico
-  hasAttr(e) {
-    return this.elements.some((t) => t.hasAttribute(e));
+  hasAttr(attribute) {
+    return this.elements.some((el) => el.hasAttribute(attribute));
   }
   // Verifica se o elemento está selecionado (para checkboxes ou radio buttons)
   isChecked() {
-    return this.elements.some((e) => e.checked === !0);
+    return this.elements.some((el) => el.checked === true);
   }
   // Verifica se o elemento está habilitado
   isEnabled() {
-    return this.elements.some((e) => !e.disabled);
+    return this.elements.some((el) => !el.disabled);
   }
   // Verifica se o elemento está desabilitado
   isDisabled() {
-    return this.elements.some((e) => e.disabled);
+    return this.elements.some((el) => el.disabled);
   }
   // Método de submit padrão
   submit() {
-    return this.each((e) => e.submit());
+    return this.each((el) => el.submit());
   }
   // Método ajaxSubmit - Submissão via AJAX (com upload de arquivos)
-  ajaxSubmit(e) {
+  ajaxSubmit(options) {
     const {
-      url: t,
-      method: s = "POST",
-      success: l = function() {
+      url,
+      method = "POST",
+      success = function() {
       },
-      error: o = function() {
+      error = function() {
       },
-      headers: a = {},
-      dataType: h = "json"
-    } = e;
-    return this.each((i) => {
-      const u = new FormData(i), n = {
-        method: s,
+      headers = {},
+      dataType = "json"
+    } = options;
+    return this.each((el) => {
+      const formData = new FormData(el);
+      const fetchOptions = {
+        method,
         headers: {
-          Accept: "application/json",
-          ...a
+          "Accept": "application/json",
+          ...headers
         },
-        body: u
+        body: formData
       };
-      fetch(t, n).then((r) => {
-        if (r.ok)
-          return r[h]();
+      fetch(url, fetchOptions).then((response) => {
+        if (response.ok) {
+          return response[dataType]();
+        }
         throw new Error("Request failed");
-      }).then((r) => l(r)).catch((r) => o(r));
+      }).then((data) => success(data)).catch((err) => error(err));
     });
   }
   // Método ANIMATE
-  animate(e, t = this.duration, s = "linear", l = function() {
+  animate(properties, duration = this.duration, easing = "linear", callback = function() {
   }) {
-    return this.each((o) => {
-      const a = {}, h = {};
-      for (const n in e)
-        a[n] = parseFloat(getComputedStyle(o)[n]) || 0, h[n] = e[n];
-      let i;
-      const u = (n) => {
-        i || (i = n);
-        const r = Math.min((n - i) / t, 1), d = this._ease(r, s);
-        for (const c in e) {
-          const y = a[c], m = h[c], p = y + (m - y) * d;
-          o.style[c] = p + (c === "opacity" ? "" : "px");
+    return this.each((el) => {
+      const startStyles = {};
+      const endStyles = {};
+      for (const prop in properties) {
+        startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
+        endStyles[prop] = properties[prop];
+      }
+      let startTime;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeProgress = this._ease(progress, easing);
+        for (const prop in properties) {
+          const startValue = startStyles[prop];
+          const endValue = endStyles[prop];
+          const currentValue = startValue + (endValue - startValue) * easeProgress;
+          el.style[prop] = currentValue + (prop === "opacity" ? "" : "px");
         }
-        r < 1 ? requestAnimationFrame(u) : l();
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          callback();
+        }
       };
-      requestAnimationFrame(u);
+      requestAnimationFrame(step);
     });
   }
   // Função para aplicar easing (simplificada)
-  _ease(e, t) {
-    switch (t) {
+  _ease(t, type) {
+    switch (type) {
       case "linear":
-        return e;
+        return t;
       case "ease-in":
-        return e * e;
+        return t * t;
       case "ease-out":
-        return e * (2 - e);
+        return t * (2 - t);
       case "ease-in-out":
-        return e < 0.5 ? 2 * e * e : -1 + (4 - 2 * e) * e;
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
       default:
-        return e;
+        return t;
     }
   }
 }
 export {
-  g as default
+  KAnime as default
 };
