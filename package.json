@@ -22,15 +22,15 @@
         "events",
         "utilities"
     ],
-    "author": "guilherme K. Fagundes",
+    "author": "guilherme K. Fagundes <guilhermekfagundes259@gmail.com>",
     "license": "MIT",
-    "homepage": "https://github.com/yourusername/kanime#readme",
+    "homepage": "https://github.com/Guilherme-fagundes/kanime#readme",
     "repository": {
         "type": "git",
-        "url": "https://github.com/yourusername/kanime.git"
+        "url": "https://github.com/Guilherme-fagundes/kanime.git"
     },
     "bugs": {
-        "url": "https://github.com/yourusername/kanime/issues"
+        "url": "https://github.com/Guilherme-fagundes/kanime/issues"
     },
     "devDependencies": {
         "terser": "^5.39.0",
