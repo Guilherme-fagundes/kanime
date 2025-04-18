@@ -1,0 +1,326 @@
+class KAnime {
+  constructor(selector) {
+    this.elements = Array.from(document.querySelectorAll(selector));
+    this.duration = 500; // Duração padrão
+  }
+
+  // Encadeamento
+  each(callback) {
+    this.elements.forEach(callback);
+    return this;
+  }
+
+  // Configurar duração
+  setDuration(ms) {
+    this.duration = ms;
+    return this;
+  }
+
+  // Manipulação de eventos
+  on(event, handler) {
+    return this.each(el => el.addEventListener(event, handler));
+  }
+
+  // Mouse events
+  onClick(handler) {
+    return this.on('click', handler);
+  }
+
+  onMouseEnter(handler) {
+    return this.on('mouseenter', handler);
+  }
+
+  onMouseLeave(handler) {
+    return this.on('mouseleave', handler);
+  }
+
+  onMouseMove(handler) {
+    return this.on('mousemove', handler);
+  }
+
+  onMouseDown(handler) {
+    return this.on('mousedown', handler);
+  }
+
+  onMouseUp(handler) {
+    return this.on('mouseup', handler);
+  }
+
+  // Keyboard events
+  onKeyDown(handler) {
+    return this.on('keydown', handler);
+  }
+
+  onKeyUp(handler) {
+    return this.on('keyup', handler);
+  }
+
+  onKeyPress(handler) {
+    return this.on('keypress', handler);
+  }
+
+  // Manipulação de estilo
+  css(property, value) {
+    if (value === undefined) {
+      return window.getComputedStyle(this.elements[0])[property]; // get
+    }
+    return this.each(el => el.style[property] = value); // set
+  }
+
+  // Manipulação de classes
+  addClass(className) {
+    return this.each(el => el.classList.add(className));
+  }
+
+  removeClass(className) {
+    return this.each(el => el.classList.remove(className));
+  }
+
+  toggleClass(className) {
+    return this.each(el => el.classList.toggle(className));
+  }
+
+  // Mostrar e esconder
+  show() {
+    return this.each(el => el.style.display = 'block');
+  }
+
+  hide() {
+    return this.each(el => el.style.display = 'none');
+  }
+
+  // Manipulação de conteúdo
+  html(content) {
+    if (content === undefined) {
+      return this.elements[0].innerHTML;
+    }
+    return this.each(el => el.innerHTML = content);
+  }
+
+  text(content) {
+    if (content === undefined) {
+      return this.elements[0].innerText;
+    }
+    return this.each(el => el.innerText = content);
+  }
+
+  // Manipulação de atributos
+  attr(attribute, value) {
+    if (value === undefined) {
+      return this.elements[0].getAttribute(attribute);
+    }
+    return this.each(el => el.setAttribute(attribute, value));
+  }
+
+  removeAttr(attribute) {
+    return this.each(el => el.removeAttribute(attribute));
+  }
+
+  // FADE IN
+  fadeIn() {
+    return this.each(el => {
+      el.style.opacity = 0;
+      el.style.display = 'block';
+
+      let last = +new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity + (new Date() - last) / this.duration;
+        last = +new Date();
+        if (+el.style.opacity < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 1;
+        }
+      };
+      tick();
+    });
+  }
+
+  // FADE OUT
+  fadeOut() {
+    return this.each(el => {
+      el.style.opacity = 1;
+
+      let last = +new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity - (new Date() - last) / this.duration;
+        last = +new Date();
+        if (+el.style.opacity > 0) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 0;
+          el.style.display = 'none';
+        }
+      };
+      tick();
+    });
+  }
+
+  // SLIDE UP
+  slideUp() {
+    return this.each(el => {
+      el.style.height = el.offsetHeight + 'px';
+      el.style.transition = `height ${this.duration}ms ease`;
+      el.offsetHeight; // reflow
+      el.style.overflow = 'hidden';
+      el.style.height = '0';
+
+      setTimeout(() => {
+        el.style.display = 'none';
+        el.style.removeProperty('height');
+        el.style.removeProperty('overflow');
+        el.style.removeProperty('transition');
+      }, this.duration);
+    });
+  }
+
+  // SLIDE DOWN
+  slideDown() {
+    return this.each(el => {
+      el.style.display = 'block';
+      const height = el.scrollHeight;
+      el.style.height = '0';
+      el.style.overflow = 'hidden';
+      el.style.transition = `height ${this.duration}ms ease`;
+      el.offsetHeight; // reflow
+      el.style.height = height + 'px';
+
+      setTimeout(() => {
+        el.style.removeProperty('height');
+        el.style.removeProperty('overflow');
+        el.style.removeProperty('transition');
+      }, this.duration);
+    });
+  }
+
+  // Verificações
+
+  // Verifica se o elemento está visível
+  isVisible() {
+    return this.elements.some(el => {
+      return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
+    });
+  }
+
+  // Verifica se o elemento contém uma classe
+  hasClass(className) {
+    return this.elements.some(el => el.classList.contains(className));
+  }
+
+  // Verifica se o elemento contém um atributo específico
+  hasAttr(attribute) {
+    return this.elements.some(el => el.hasAttribute(attribute));
+  }
+
+  // Verifica se o elemento está selecionado (para checkboxes ou radio buttons)
+  isChecked() {
+    return this.elements.some(el => el.checked === true);
+  }
+
+  // Verifica se o elemento está habilitado
+  isEnabled() {
+    return this.elements.some(el => !el.disabled);
+  }
+
+  // Verifica se o elemento está desabilitado
+  isDisabled() {
+    return this.elements.some(el => el.disabled);
+  }
+
+  // Método de submit padrão
+  submit() {
+    return this.each(el => el.submit());
+  }
+
+  // Método ajaxSubmit - Submissão via AJAX (com upload de arquivos)
+  ajaxSubmit(options) {
+    const {
+      url,
+      method = 'POST',
+      success = function () { },
+      error = function () { },
+      headers = {},
+      dataType = 'json',
+    } = options;
+
+    // Para formularios com arquivos, o enctype precisa ser 'multipart/form-data'
+    return this.each(el => {
+      const formData = new FormData(el);
+
+      const fetchOptions = {
+        method,
+        headers: {
+          'Accept': 'application/json',
+          ...headers,
+        },
+        body: formData,
+      };
+
+      fetch(url, fetchOptions)
+        .then(response => {
+          if (response.ok) {
+            return response[dataType]();
+          }
+          throw new Error('Request failed');
+        })
+        .then(data => success(data))
+        .catch(err => error(err));
+    });
+  }
+
+  // Método ANIMATE
+  animate(properties, duration = this.duration, easing = 'linear', callback = function () { }) {
+    return this.each(el => {
+      const startStyles = {};
+      const endStyles = {};
+
+      // Obter os estilos iniciais e finais
+      for (const prop in properties) {
+        startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
+        endStyles[prop] = properties[prop];
+      }
+
+      let startTime;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+
+        const progress = Math.min((timestamp - startTime) / duration, 1); // Normaliza para [0, 1]
+        const easeProgress = this._ease(progress, easing);
+
+        // Aplicar a transição para cada propriedade
+        for (const prop in properties) {
+          const startValue = startStyles[prop];
+          const endValue = endStyles[prop];
+          const currentValue = startValue + (endValue - startValue) * easeProgress;
+          el.style[prop] = currentValue + (prop === 'opacity' ? '' : 'px');
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          callback(); // Chama o callback quando a animação termina
+        }
+      };
+
+      requestAnimationFrame(step);
+    });
+  }
+
+  // Função para aplicar easing (simplificada)
+  _ease(t, type) {
+    switch (type) {
+      case 'linear':
+        return t;
+      case 'ease-in':
+        return t * t;
+      case 'ease-out':
+        return t * (2 - t);
+      case 'ease-in-out':
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      default:
+        return t; // Default linear easing
+    }
+  }
+}
+
+export default KAnime;
