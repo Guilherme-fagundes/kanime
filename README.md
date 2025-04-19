@@ -1,4 +1,3 @@
-
 # KAnime.js
 
 **KAnime** is a lightweight JavaScript micro-library for DOM manipulation, animations, event handling, and AJAX — all with zero dependencies.
@@ -133,7 +132,7 @@ el.isDisabled();                    // true if disabled
 
 ---
 
-### 📨 Forms
+### 📧 Forms
 
 #### Submit normally
 
@@ -152,6 +151,20 @@ new KAnime('#myForm').ajaxSubmit({
 });
 ```
 
+## Recent Improvements
+
+### Support for Advanced Selectors
+- Static method `select` to create KAnime instances with advanced CSS selectors.
+
+### Virtual DOM Manipulation
+- Static method `createVirtualElement` to create DOM elements virtually before adding them to the document.
+
+### Plugin Support
+- API for registering and using plugins with the `use` and `callPlugin` methods.
+
+### Internationalization (i18n) Support
+- Support for string translation with the static method `i18n.translate` and language configuration with `i18n.setLocale`.
+
 ## 🤝 Contributing
 
 Pull requests, suggestions, and feedback are welcome.  
@@ -162,5 +175,4 @@ Feel free to open an issue if you find bugs or want to propose new features!
 ## 📄 License
 
 MIT © [Guilherme K. Fagundes](https://github.com/Guildherme-fagundes)
-```
 
