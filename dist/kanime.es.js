@@ -1,5 +1,11 @@
-class KAnime {
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+const _KAnime = class _KAnime {
   constructor(selector) {
+    if (!_KAnime.isModernBrowser()) {
+      throw new Error("Your browser is incompatible with the KAnime library. Please update to a recent version.");
+    }
     this.elements = Array.from(document.querySelectorAll(selector));
     this.duration = 500;
   }
@@ -16,6 +22,19 @@ class KAnime {
   // Manipulação de eventos
   on(event, handler) {
     return this.each((el) => el.addEventListener(event, handler));
+  }
+  // Adicionando suporte a eventos 'off' e 'one'
+  off(event, handler) {
+    return this.each((el) => el.removeEventListener(event, handler));
+  }
+  one(event, handler) {
+    return this.each((el) => {
+      const onceHandler = (e) => {
+        handler(e);
+        el.removeEventListener(event, onceHandler);
+      };
+      el.addEventListener(event, onceHandler);
+    });
   }
   // Manipulação de formulários
   // Serializa os dados do formulário para uma string (chave=valor)
@@ -195,33 +214,34 @@ class KAnime {
     return this.each((el) => el.submit());
   }
   // Método ANIMATE
-  animate(properties, duration = this.duration, easing = "linear", callback = function() {
-  }) {
-    return this.each((el) => {
-      const startStyles = {};
-      const endStyles = {};
-      for (const prop in properties) {
-        startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
-        endStyles[prop] = properties[prop];
-      }
-      let startTime;
-      const step = (timestamp) => {
-        if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        const easeProgress = this._ease(progress, easing);
+  animate(properties, duration = this.duration, easing = "linear") {
+    return new Promise((resolve) => {
+      this.each((el) => {
+        const startStyles = {};
+        const endStyles = {};
         for (const prop in properties) {
-          const startValue = startStyles[prop];
-          const endValue = endStyles[prop];
-          const currentValue = startValue + (endValue - startValue) * easeProgress;
-          el.style[prop] = currentValue + (prop === "opacity" ? "" : "px");
+          startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
+          endStyles[prop] = properties[prop];
         }
-        if (progress < 1) {
-          requestAnimationFrame(step);
-        } else {
-          callback();
-        }
-      };
-      requestAnimationFrame(step);
+        let startTime;
+        const step = (timestamp) => {
+          if (!startTime) startTime = timestamp;
+          const progress = Math.min((timestamp - startTime) / duration, 1);
+          const easeProgress = this._ease(progress, easing);
+          for (const prop in properties) {
+            const startValue = startStyles[prop];
+            const endValue = endStyles[prop];
+            const currentValue = startValue + (endValue - startValue) * easeProgress;
+            el.style[prop] = currentValue + (prop === "opacity" ? "" : "px");
+          }
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            resolve();
+          }
+        };
+        requestAnimationFrame(step);
+      });
     });
   }
   // Função para aplicar easing (simplificada)
@@ -239,7 +259,97 @@ class KAnime {
         return t;
     }
   }
-}
+  // Adicionando suporte a AJAX moderno
+  ajax({ url, method = "GET", data = null, headers = {} }) {
+    return fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...headers
+      },
+      body: data ? JSON.stringify(data) : null
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    });
+  }
+  // Melhorando compatibilidade com navegadores modernos
+  static isModernBrowser() {
+    return "querySelector" in document && "addEventListener" in window && "fetch" in window;
+  }
+  // Compatibility check for older browsers
+  static checkCompatibility() {
+    const isCompatible = "querySelector" in document && "addEventListener" in window && "fetch" in window;
+    if (!isCompatible) {
+      throw new Error("Your browser is incompatible with the KAnime library. Please update to a recent version.");
+    }
+  }
+  // Suporte a seletores avançados
+  static select(selector) {
+    return new _KAnime(selector);
+  }
+  // Manipulação de DOM Virtual
+  static createVirtualElement(tagName, attributes = {}, children = []) {
+    const element = document.createElement(tagName);
+    for (const [key, value] of Object.entries(attributes)) {
+      element.setAttribute(key, value);
+    }
+    children.forEach((child) => {
+      if (typeof child === "string") {
+        element.appendChild(document.createTextNode(child));
+      } else {
+        element.appendChild(child);
+      }
+    });
+    return element;
+  }
+  static use(pluginName, pluginFunction) {
+    if (typeof pluginFunction !== "function") {
+      throw new Error(`Plugin ${pluginName} must be a function.`);
+    }
+    this.plugins[pluginName] = pluginFunction;
+  }
+  static callPlugin(pluginName, ...args) {
+    if (this.plugins[pluginName]) {
+      return this.plugins[pluginName](...args);
+    } else {
+      throw new Error(`Plugin ${pluginName} not found.`);
+    }
+  }
+  static listPlugins() {
+    return Object.keys(this.plugins);
+  }
+  static removePlugin(pluginName) {
+    if (this.plugins[pluginName]) {
+      delete this.plugins[pluginName];
+    } else {
+      throw new Error(`Plugin ${pluginName} not found.`);
+    }
+  }
+};
+// Suporte a plugins
+__publicField(_KAnime, "plugins", {});
+// Suporte a Internacionalização (i18n)
+__publicField(_KAnime, "i18n", {
+  locale: "en",
+  translations: {},
+  setLocale(locale) {
+    this.locale = locale;
+  },
+  addTranslations(locale, translations) {
+    this.translations[locale] = {
+      ...this.translations[locale],
+      ...translations
+    };
+  },
+  translate(key) {
+    var _a;
+    return ((_a = this.translations[this.locale]) == null ? void 0 : _a[key]) || key;
+  }
+});
+let KAnime = _KAnime;
 export {
   KAnime as default
 };
