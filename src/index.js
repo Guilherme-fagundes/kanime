@@ -1,38 +1,70 @@
 class KAnime {
   constructor(selector) {
     this.elements = Array.from(document.querySelectorAll(selector));
-    this.duration = 500;
+    this.duration = 500; // Duração padrão
   }
 
+  // Encadeamento
   each(callback) {
     this.elements.forEach(callback);
     return this;
   }
 
+  // Configurar duração
   setDuration(ms) {
     this.duration = ms;
     return this;
   }
 
-  // Eventos genéricos
+  // Manipulação de eventos
   on(event, handler) {
     return this.each(el => el.addEventListener(event, handler));
   }
 
-  // Eventos mouse e teclado (agrupados por nomes)
-  _registerEvent(method, event) {
-    this[method] = handler => this.on(event, handler);
+  // Manipulação de formulários
+
+  // Serializa os dados do formulário para uma string (chave=valor)
+  serialize() {
+    const formData = new FormData(this.elements[0]);
+    const serialized = [];
+    formData.forEach((value, key) => {
+      serialized.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    });
+    return serialized.join('&');
   }
 
-  // CSS
+  // Serializa os dados do formulário para um array de objetos
+  serializeArray() {
+    const formData = new FormData(this.elements[0]);
+    const serializedArray = [];
+    formData.forEach((value, key) => {
+      serializedArray.push({ name: key, value: value });
+    });
+    return serializedArray;
+  }
+
+  // Define ou retorna o valor de um campo do formulário
+  val(value) {
+    if (value === undefined) {
+      return this.elements[0].value; // Retorna o valor
+    }
+    return this.each(el => el.value = value); // Define o valor
+  }
+
+  // Adiciona o valor serializado aos parâmetros da URL (para GET)
+  param() {
+    return this.serialize();
+  }
+
+  // Manipulação de estilo
   css(property, value) {
     if (value === undefined) {
-      return window.getComputedStyle(this.elements[0])[property];
+      return window.getComputedStyle(this.elements[0])[property]; // get
     }
-    return this.each(el => el.style[property] = value);
+    return this.each(el => el.style[property] = value); // set
   }
 
-  // Classes
+  // Manipulação de classes
   addClass(className) {
     return this.each(el => el.classList.add(className));
   }
@@ -45,7 +77,7 @@ class KAnime {
     return this.each(el => el.classList.toggle(className));
   }
 
-  // Visibilidade
+  // Mostrar e esconder
   show() {
     return this.each(el => el.style.display = 'block');
   }
@@ -54,20 +86,26 @@ class KAnime {
     return this.each(el => el.style.display = 'none');
   }
 
-  // Conteúdo
+  // Manipulação de conteúdo
   html(content) {
-    if (content === undefined) return this.elements[0].innerHTML;
+    if (content === undefined) {
+      return this.elements[0].innerHTML;
+    }
     return this.each(el => el.innerHTML = content);
   }
 
   text(content) {
-    if (content === undefined) return this.elements[0].innerText;
+    if (content === undefined) {
+      return this.elements[0].innerText;
+    }
     return this.each(el => el.innerText = content);
   }
 
-  // Atributos
+  // Manipulação de atributos
   attr(attribute, value) {
-    if (value === undefined) return this.elements[0].getAttribute(attribute);
+    if (value === undefined) {
+      return this.elements[0].getAttribute(attribute);
+    }
     return this.each(el => el.setAttribute(attribute, value));
   }
 
@@ -75,54 +113,65 @@ class KAnime {
     return this.each(el => el.removeAttribute(attribute));
   }
 
-  // Fade
+  // FADE IN
   fadeIn() {
     return this.each(el => {
       el.style.opacity = 0;
       el.style.display = 'block';
-      this._fade(el, 0, 1);
+
+      let last = +new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity + (new Date() - last) / this.duration;
+        last = +new Date();
+        if (+el.style.opacity < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 1;
+        }
+      };
+      tick();
     });
   }
 
+  // FADE OUT
   fadeOut() {
-    return this.each(el => this._fade(el, 1, 0, () => {
-      el.style.display = 'none';
-    }));
+    return this.each(el => {
+      el.style.opacity = 1;
+
+      let last = +new Date();
+      const tick = () => {
+        el.style.opacity = +el.style.opacity - (new Date() - last) / this.duration;
+        last = +new Date();
+        if (+el.style.opacity > 0) {
+          requestAnimationFrame(tick);
+        } else {
+          el.style.opacity = 0;
+          el.style.display = 'none';
+        }
+      };
+      tick();
+    });
   }
 
-  _fade(el, from, to, callback) {
-    let last = performance.now();
-    const tick = now => {
-      const delta = (now - last) / this.duration;
-      el.style.opacity = Math.min(to, Math.max(from, +el.style.opacity + (to - from) * delta));
-      last = now;
-      if ((to > from && +el.style.opacity < to) || (to < from && +el.style.opacity > to)) {
-        requestAnimationFrame(tick);
-      } else {
-        el.style.opacity = to;
-        if (callback) callback();
-      }
-    };
-    requestAnimationFrame(tick);
-  }
-
-  // Slide
+  // SLIDE UP
   slideUp() {
     return this.each(el => {
       el.style.height = el.offsetHeight + 'px';
       el.style.transition = `height ${this.duration}ms ease`;
+      el.offsetHeight; // reflow
       el.style.overflow = 'hidden';
-      requestAnimationFrame(() => {
-        el.style.height = '0';
-      });
+      el.style.height = '0';
 
       setTimeout(() => {
         el.style.display = 'none';
-        this._resetTransition(el);
+        el.style.removeProperty('height');
+        el.style.removeProperty('overflow');
+        el.style.removeProperty('transition');
       }, this.duration);
     });
   }
 
+  // SLIDE DOWN
   slideDown() {
     return this.each(el => {
       el.style.display = 'block';
@@ -130,127 +179,109 @@ class KAnime {
       el.style.height = '0';
       el.style.overflow = 'hidden';
       el.style.transition = `height ${this.duration}ms ease`;
-      requestAnimationFrame(() => {
-        el.style.height = height + 'px';
-      });
+      el.offsetHeight; // reflow
+      el.style.height = height + 'px';
 
       setTimeout(() => {
-        this._resetTransition(el);
+        el.style.removeProperty('height');
+        el.style.removeProperty('overflow');
+        el.style.removeProperty('transition');
       }, this.duration);
     });
   }
 
-  _resetTransition(el) {
-    el.style.removeProperty('height');
-    el.style.removeProperty('overflow');
-    el.style.removeProperty('transition');
-  }
-
   // Verificações
+
+  // Verifica se o elemento está visível
   isVisible() {
-    return this.elements.some(el =>
-      window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0
-    );
+    return this.elements.some(el => {
+      return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
+    });
   }
 
+  // Verifica se o elemento contém uma classe
   hasClass(className) {
     return this.elements.some(el => el.classList.contains(className));
   }
 
+  // Verifica se o elemento contém um atributo específico
   hasAttr(attribute) {
     return this.elements.some(el => el.hasAttribute(attribute));
   }
 
+  // Verifica se o elemento está selecionado (para checkboxes ou radio buttons)
   isChecked() {
-    return this.elements.some(el => el.checked);
+    return this.elements.some(el => el.checked === true);
   }
 
+  // Verifica se o elemento está habilitado
   isEnabled() {
     return this.elements.some(el => !el.disabled);
   }
 
+  // Verifica se o elemento está desabilitado
   isDisabled() {
     return this.elements.some(el => el.disabled);
   }
 
-  // Submissão
+  // Método de submit padrão
   submit() {
     return this.each(el => el.submit());
   }
 
-  ajaxSubmit({ url, method = 'POST', success = () => {}, error = () => {}, headers = {}, dataType = 'json' }) {
-    return this.each(el => {
-      const formData = new FormData(el);
-
-      fetch(url, {
-        method,
-        headers: {
-          'Accept': 'application/json',
-          ...headers,
-        },
-        body: formData,
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Request failed');
-          return res[dataType]();
-        })
-        .then(success)
-        .catch(error);
-    });
-  }
-
-  animate(properties, duration = this.duration, easing = 'linear', callback = () => {}) {
+  // Método ANIMATE
+  animate(properties, duration = this.duration, easing = 'linear', callback = function () { }) {
     return this.each(el => {
       const startStyles = {};
-      const endStyles = properties;
+      const endStyles = {};
+
+      // Obter os estilos iniciais e finais
       for (const prop in properties) {
         startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
+        endStyles[prop] = properties[prop];
       }
 
-      let startTime = null;
-      const animateStep = time => {
-        if (!startTime) startTime = time;
-        const progress = Math.min((time - startTime) / duration, 1);
-        const eased = this._ease(progress, easing);
+      let startTime;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
 
-        for (const prop in endStyles) {
-          const start = startStyles[prop];
-          const end = endStyles[prop];
-          const value = start + (end - start) * eased;
-          el.style[prop] = value + (prop === 'opacity' ? '' : 'px');
+        const progress = Math.min((timestamp - startTime) / duration, 1); // Normaliza para [0, 1]
+        const easeProgress = this._ease(progress, easing);
+
+        // Aplicar a transição para cada propriedade
+        for (const prop in properties) {
+          const startValue = startStyles[prop];
+          const endValue = endStyles[prop];
+          const currentValue = startValue + (endValue - startValue) * easeProgress;
+          el.style[prop] = currentValue + (prop === 'opacity' ? '' : 'px');
         }
 
         if (progress < 1) {
-          requestAnimationFrame(animateStep);
+          requestAnimationFrame(step);
         } else {
-          callback();
+          callback(); // Chama o callback quando a animação termina
         }
       };
 
-      requestAnimationFrame(animateStep);
+      requestAnimationFrame(step);
     });
   }
 
+  // Função para aplicar easing (simplificada)
   _ease(t, type) {
-    const easingMap = {
-      linear: t,
-      'ease-in': t * t,
-      'ease-out': t * (2 - t),
-      'ease-in-out': t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-    };
-    return easingMap[type] ?? t;
+    switch (type) {
+      case 'linear':
+        return t;
+      case 'ease-in':
+        return t * t;
+      case 'ease-out':
+        return t * (2 - t);
+      case 'ease-in-out':
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      default:
+        return t; // Default linear easing
+    }
   }
 }
-
-// Auto-registro de eventos do mouse e teclado
-const mouseEvents = ['click', 'mouseenter', 'mouseleave', 'mousemove', 'mousedown', 'mouseup'];
-const keyEvents = ['keydown', 'keyup', 'keypress'];
-
-[...mouseEvents, ...keyEvents].forEach(event => {
-  const method = 'on' + event.charAt(0).toUpperCase() + event.slice(1);
-  KAnime.prototype[method] = function (handler) {
-    return this.on(event, handler);
-  };
-});
 
 export default KAnime;
