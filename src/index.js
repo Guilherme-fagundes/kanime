@@ -1,73 +1,38 @@
 class KAnime {
   constructor(selector) {
     this.elements = Array.from(document.querySelectorAll(selector));
-    this.duration = 500; // Duração padrão
+    this.duration = 500;
   }
 
-  // Encadeamento
   each(callback) {
     this.elements.forEach(callback);
     return this;
   }
 
-  // Configurar duração
   setDuration(ms) {
     this.duration = ms;
     return this;
   }
 
-  // Manipulação de eventos
+  // Eventos genéricos
   on(event, handler) {
     return this.each(el => el.addEventListener(event, handler));
   }
 
-  // Mouse events
-  onClick(handler) {
-    return this.on('click', handler);
+  // Eventos mouse e teclado (agrupados por nomes)
+  _registerEvent(method, event) {
+    this[method] = handler => this.on(event, handler);
   }
 
-  onMouseEnter(handler) {
-    return this.on('mouseenter', handler);
-  }
-
-  onMouseLeave(handler) {
-    return this.on('mouseleave', handler);
-  }
-
-  onMouseMove(handler) {
-    return this.on('mousemove', handler);
-  }
-
-  onMouseDown(handler) {
-    return this.on('mousedown', handler);
-  }
-
-  onMouseUp(handler) {
-    return this.on('mouseup', handler);
-  }
-
-  // Keyboard events
-  onKeyDown(handler) {
-    return this.on('keydown', handler);
-  }
-
-  onKeyUp(handler) {
-    return this.on('keyup', handler);
-  }
-
-  onKeyPress(handler) {
-    return this.on('keypress', handler);
-  }
-
-  // Manipulação de estilo
+  // CSS
   css(property, value) {
     if (value === undefined) {
-      return window.getComputedStyle(this.elements[0])[property]; // get
+      return window.getComputedStyle(this.elements[0])[property];
     }
-    return this.each(el => el.style[property] = value); // set
+    return this.each(el => el.style[property] = value);
   }
 
-  // Manipulação de classes
+  // Classes
   addClass(className) {
     return this.each(el => el.classList.add(className));
   }
@@ -80,7 +45,7 @@ class KAnime {
     return this.each(el => el.classList.toggle(className));
   }
 
-  // Mostrar e esconder
+  // Visibilidade
   show() {
     return this.each(el => el.style.display = 'block');
   }
@@ -89,26 +54,20 @@ class KAnime {
     return this.each(el => el.style.display = 'none');
   }
 
-  // Manipulação de conteúdo
+  // Conteúdo
   html(content) {
-    if (content === undefined) {
-      return this.elements[0].innerHTML;
-    }
+    if (content === undefined) return this.elements[0].innerHTML;
     return this.each(el => el.innerHTML = content);
   }
 
   text(content) {
-    if (content === undefined) {
-      return this.elements[0].innerText;
-    }
+    if (content === undefined) return this.elements[0].innerText;
     return this.each(el => el.innerText = content);
   }
 
-  // Manipulação de atributos
+  // Atributos
   attr(attribute, value) {
-    if (value === undefined) {
-      return this.elements[0].getAttribute(attribute);
-    }
+    if (value === undefined) return this.elements[0].getAttribute(attribute);
     return this.each(el => el.setAttribute(attribute, value));
   }
 
@@ -116,65 +75,54 @@ class KAnime {
     return this.each(el => el.removeAttribute(attribute));
   }
 
-  // FADE IN
+  // Fade
   fadeIn() {
     return this.each(el => {
       el.style.opacity = 0;
       el.style.display = 'block';
-
-      let last = +new Date();
-      const tick = () => {
-        el.style.opacity = +el.style.opacity + (new Date() - last) / this.duration;
-        last = +new Date();
-        if (+el.style.opacity < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          el.style.opacity = 1;
-        }
-      };
-      tick();
+      this._fade(el, 0, 1);
     });
   }
 
-  // FADE OUT
   fadeOut() {
-    return this.each(el => {
-      el.style.opacity = 1;
-
-      let last = +new Date();
-      const tick = () => {
-        el.style.opacity = +el.style.opacity - (new Date() - last) / this.duration;
-        last = +new Date();
-        if (+el.style.opacity > 0) {
-          requestAnimationFrame(tick);
-        } else {
-          el.style.opacity = 0;
-          el.style.display = 'none';
-        }
-      };
-      tick();
-    });
+    return this.each(el => this._fade(el, 1, 0, () => {
+      el.style.display = 'none';
+    }));
   }
 
-  // SLIDE UP
+  _fade(el, from, to, callback) {
+    let last = performance.now();
+    const tick = now => {
+      const delta = (now - last) / this.duration;
+      el.style.opacity = Math.min(to, Math.max(from, +el.style.opacity + (to - from) * delta));
+      last = now;
+      if ((to > from && +el.style.opacity < to) || (to < from && +el.style.opacity > to)) {
+        requestAnimationFrame(tick);
+      } else {
+        el.style.opacity = to;
+        if (callback) callback();
+      }
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // Slide
   slideUp() {
     return this.each(el => {
       el.style.height = el.offsetHeight + 'px';
       el.style.transition = `height ${this.duration}ms ease`;
-      el.offsetHeight; // reflow
       el.style.overflow = 'hidden';
-      el.style.height = '0';
+      requestAnimationFrame(() => {
+        el.style.height = '0';
+      });
 
       setTimeout(() => {
         el.style.display = 'none';
-        el.style.removeProperty('height');
-        el.style.removeProperty('overflow');
-        el.style.removeProperty('transition');
+        this._resetTransition(el);
       }, this.duration);
     });
   }
 
-  // SLIDE DOWN
   slideDown() {
     return this.each(el => {
       el.style.display = 'block';
@@ -182,145 +130,127 @@ class KAnime {
       el.style.height = '0';
       el.style.overflow = 'hidden';
       el.style.transition = `height ${this.duration}ms ease`;
-      el.offsetHeight; // reflow
-      el.style.height = height + 'px';
+      requestAnimationFrame(() => {
+        el.style.height = height + 'px';
+      });
 
       setTimeout(() => {
-        el.style.removeProperty('height');
-        el.style.removeProperty('overflow');
-        el.style.removeProperty('transition');
+        this._resetTransition(el);
       }, this.duration);
     });
   }
 
-  // Verificações
-
-  // Verifica se o elemento está visível
-  isVisible() {
-    return this.elements.some(el => {
-      return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
-    });
+  _resetTransition(el) {
+    el.style.removeProperty('height');
+    el.style.removeProperty('overflow');
+    el.style.removeProperty('transition');
   }
 
-  // Verifica se o elemento contém uma classe
+  // Verificações
+  isVisible() {
+    return this.elements.some(el =>
+      window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0
+    );
+  }
+
   hasClass(className) {
     return this.elements.some(el => el.classList.contains(className));
   }
 
-  // Verifica se o elemento contém um atributo específico
   hasAttr(attribute) {
     return this.elements.some(el => el.hasAttribute(attribute));
   }
 
-  // Verifica se o elemento está selecionado (para checkboxes ou radio buttons)
   isChecked() {
-    return this.elements.some(el => el.checked === true);
+    return this.elements.some(el => el.checked);
   }
 
-  // Verifica se o elemento está habilitado
   isEnabled() {
     return this.elements.some(el => !el.disabled);
   }
 
-  // Verifica se o elemento está desabilitado
   isDisabled() {
     return this.elements.some(el => el.disabled);
   }
 
-  // Método de submit padrão
+  // Submissão
   submit() {
     return this.each(el => el.submit());
   }
 
-  // Método ajaxSubmit - Submissão via AJAX (com upload de arquivos)
-  ajaxSubmit(options) {
-    const {
-      url,
-      method = 'POST',
-      success = function () { },
-      error = function () { },
-      headers = {},
-      dataType = 'json',
-    } = options;
-
-    // Para formularios com arquivos, o enctype precisa ser 'multipart/form-data'
+  ajaxSubmit({ url, method = 'POST', success = () => {}, error = () => {}, headers = {}, dataType = 'json' }) {
     return this.each(el => {
       const formData = new FormData(el);
 
-      const fetchOptions = {
+      fetch(url, {
         method,
         headers: {
           'Accept': 'application/json',
           ...headers,
         },
         body: formData,
-      };
-
-      fetch(url, fetchOptions)
-        .then(response => {
-          if (response.ok) {
-            return response[dataType]();
-          }
-          throw new Error('Request failed');
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Request failed');
+          return res[dataType]();
         })
-        .then(data => success(data))
-        .catch(err => error(err));
+        .then(success)
+        .catch(error);
     });
   }
 
-  // Método ANIMATE
-  animate(properties, duration = this.duration, easing = 'linear', callback = function () { }) {
+  animate(properties, duration = this.duration, easing = 'linear', callback = () => {}) {
     return this.each(el => {
       const startStyles = {};
-      const endStyles = {};
-
-      // Obter os estilos iniciais e finais
+      const endStyles = properties;
       for (const prop in properties) {
         startStyles[prop] = parseFloat(getComputedStyle(el)[prop]) || 0;
-        endStyles[prop] = properties[prop];
       }
 
-      let startTime;
-      const step = (timestamp) => {
-        if (!startTime) startTime = timestamp;
+      let startTime = null;
+      const animateStep = time => {
+        if (!startTime) startTime = time;
+        const progress = Math.min((time - startTime) / duration, 1);
+        const eased = this._ease(progress, easing);
 
-        const progress = Math.min((timestamp - startTime) / duration, 1); // Normaliza para [0, 1]
-        const easeProgress = this._ease(progress, easing);
-
-        // Aplicar a transição para cada propriedade
-        for (const prop in properties) {
-          const startValue = startStyles[prop];
-          const endValue = endStyles[prop];
-          const currentValue = startValue + (endValue - startValue) * easeProgress;
-          el.style[prop] = currentValue + (prop === 'opacity' ? '' : 'px');
+        for (const prop in endStyles) {
+          const start = startStyles[prop];
+          const end = endStyles[prop];
+          const value = start + (end - start) * eased;
+          el.style[prop] = value + (prop === 'opacity' ? '' : 'px');
         }
 
         if (progress < 1) {
-          requestAnimationFrame(step);
+          requestAnimationFrame(animateStep);
         } else {
-          callback(); // Chama o callback quando a animação termina
+          callback();
         }
       };
 
-      requestAnimationFrame(step);
+      requestAnimationFrame(animateStep);
     });
   }
 
-  // Função para aplicar easing (simplificada)
   _ease(t, type) {
-    switch (type) {
-      case 'linear':
-        return t;
-      case 'ease-in':
-        return t * t;
-      case 'ease-out':
-        return t * (2 - t);
-      case 'ease-in-out':
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      default:
-        return t; // Default linear easing
-    }
+    const easingMap = {
+      linear: t,
+      'ease-in': t * t,
+      'ease-out': t * (2 - t),
+      'ease-in-out': t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    };
+    return easingMap[type] ?? t;
   }
 }
+
+// Auto-registro de eventos do mouse e teclado
+const mouseEvents = ['click', 'mouseenter', 'mouseleave', 'mousemove', 'mousedown', 'mouseup'];
+const keyEvents = ['keydown', 'keyup', 'keypress'];
+
+[...mouseEvents, ...keyEvents].forEach(event => {
+  const method = 'on' + event.charAt(0).toUpperCase() + event.slice(1);
+  KAnime.prototype[method] = function (handler) {
+    return this.on(event, handler);
+  };
+});
 
 export default KAnime;
