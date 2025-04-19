@@ -14,7 +14,7 @@ npm install kanime
 
 Or CDN
 ```html
-<script src="https://cdn.jsdelivr.net/gh/Guilherme-fagundes/kanime@1.0.1/dist/kanime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Guilherme-fagundes/kanime@1.0.2/dist/kanime.min.js"></script>
 ```
 
 ---
