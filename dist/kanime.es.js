@@ -17,34 +17,35 @@ class KAnime {
   on(event, handler) {
     return this.each((el) => el.addEventListener(event, handler));
   }
-  // Mouse events
-  onClick(handler) {
-    return this.on("click", handler);
+  // Manipulação de formulários
+  // Serializa os dados do formulário para uma string (chave=valor)
+  serialize() {
+    const formData = new FormData(this.elements[0]);
+    const serialized = [];
+    formData.forEach((value, key) => {
+      serialized.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+    });
+    return serialized.join("&");
   }
-  onMouseEnter(handler) {
-    return this.on("mouseenter", handler);
+  // Serializa os dados do formulário para um array de objetos
+  serializeArray() {
+    const formData = new FormData(this.elements[0]);
+    const serializedArray = [];
+    formData.forEach((value, key) => {
+      serializedArray.push({ name: key, value });
+    });
+    return serializedArray;
   }
-  onMouseLeave(handler) {
-    return this.on("mouseleave", handler);
+  // Define ou retorna o valor de um campo do formulário
+  val(value) {
+    if (value === void 0) {
+      return this.elements[0].value;
+    }
+    return this.each((el) => el.value = value);
   }
-  onMouseMove(handler) {
-    return this.on("mousemove", handler);
-  }
-  onMouseDown(handler) {
-    return this.on("mousedown", handler);
-  }
-  onMouseUp(handler) {
-    return this.on("mouseup", handler);
-  }
-  // Keyboard events
-  onKeyDown(handler) {
-    return this.on("keydown", handler);
-  }
-  onKeyUp(handler) {
-    return this.on("keyup", handler);
-  }
-  onKeyPress(handler) {
-    return this.on("keypress", handler);
+  // Adiciona o valor serializado aos parâmetros da URL (para GET)
+  param() {
+    return this.serialize();
   }
   // Manipulação de estilo
   css(property, value) {
@@ -192,36 +193,6 @@ class KAnime {
   // Método de submit padrão
   submit() {
     return this.each((el) => el.submit());
-  }
-  // Método ajaxSubmit - Submissão via AJAX (com upload de arquivos)
-  ajaxSubmit(options) {
-    const {
-      url,
-      method = "POST",
-      success = function() {
-      },
-      error = function() {
-      },
-      headers = {},
-      dataType = "json"
-    } = options;
-    return this.each((el) => {
-      const formData = new FormData(el);
-      const fetchOptions = {
-        method,
-        headers: {
-          "Accept": "application/json",
-          ...headers
-        },
-        body: formData
-      };
-      fetch(url, fetchOptions).then((response) => {
-        if (response.ok) {
-          return response[dataType]();
-        }
-        throw new Error("Request failed");
-      }).then((data) => success(data)).catch((err) => error(err));
-    });
   }
   // Método ANIMATE
   animate(properties, duration = this.duration, easing = "linear", callback = function() {
