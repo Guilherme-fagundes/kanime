@@ -1,7 +1,7 @@
 {
     "name": "kanime",
     "version": "1.0.8",
-    "description": "A lightweight JavaScript micro-library for DOM manipulation, animations, events, and AJAX, all with no external dependencies.",
+    "description": "A lightweight JavaScript micro-library for DOM manipulation, animations, events, and fetch, all with no external dependencies.",
     "main": "src/index.js",
     "scripts": {
         "minify": "terser src/index.js -o dist/kanime.min.js -c -m",
@@ -13,7 +13,7 @@
     "keywords": [
         "javascript",
         "dom",
-        "ajax",
+        "fetch",
         "fade",
         "animation",
         "micro-library",

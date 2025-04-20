@@ -2,6 +2,10 @@
  * KAnime.js - A lightweight library for DOM manipulation, animations, events, forms, and media control.
  */
 class KAnime {
+  // =========================
+  // Core & Utility
+  // =========================
+
   /**
    * Creates an instance of KAnime.
    * @param {string|HTMLElement|NodeList} selector - CSS selector, HTML element, or NodeList.
@@ -44,7 +48,44 @@ class KAnime {
     return this;
   }
 
+  /**
+   * Checks if the browser supports required features.
+   * @returns {boolean}
+   */
+  static kIsModernBrowser() {
+    return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
+  }
+
+  /**
+   * Creates a new KAnime instance for the given selector.
+   * @param {string} selector
+   * @returns {KAnime}
+   */
+  static kSelect(selector) {
+    return new KAnime(selector);
+  }
+
+  /**
+   * Returns the position and size of the first selected element relative to the document.
+   * @returns {{top: number, left: number, width: number, height: number}}
+   */
+  kCalculate() {
+    if (!this.elements[0]) {
+      return null;
+    }
+    const el = this.elements[0];
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top + window.scrollY,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+
+  // =========================
   // DOM Manipulation
+  // =========================
 
   /**
    * Adds content to the end of each selected element.
@@ -160,19 +201,33 @@ class KAnime {
     });
   }
 
-  // Event Handling
+  // =========================
+  // Event Handling (with delegation)
+  // =========================
 
   /**
    * Adds event listeners to the selected elements.
+   * Supports delegation if a selector is passed as the second argument.
    * @param {string} events
-   * @param {Function} handler
+   * @param {Function|string} handlerOrSelector - Handler function or selector for delegation.
+   * @param {Function} [handler] - Handler function if delegation is used.
    * @returns {KAnime}
    */
-  kListen(events, handler) {
+  kListen(events, handlerOrSelector, handler) {
     const eventList = events.split(/[,\s]+/);
     return this.kForEach(el => {
       eventList.forEach(event => {
-        el.addEventListener(event, e => handler.call(el, e));
+        if (typeof handlerOrSelector === 'string' && typeof handler === 'function') {
+          // Delegated event
+          el.addEventListener(event, function(e) {
+            if (e.target.closest(handlerOrSelector) && el.contains(e.target)) {
+              handler.call(e.target, e);
+            }
+          });
+        } else if (typeof handlerOrSelector === 'function') {
+          // Direct event
+          el.addEventListener(event, e => handlerOrSelector.call(el, e));
+        }
       });
     });
   }
@@ -228,7 +283,9 @@ class KAnime {
     });
   }
 
-  // Animation
+  // =========================
+  // Animation (with expanded easings)
+  // =========================
 
   /**
    * Shows the elements with a fade-in animation.
@@ -281,7 +338,74 @@ class KAnime {
     });
   }
 
+  /**
+   * Animates CSS properties of the selected elements.
+   * @param {Object} properties - CSS properties and their target values.
+   * @param {number} duration - Animation duration in milliseconds.
+   * @param {string} [easing='linear'] - Easing function: 'linear' or 'ease'.
+   * @param {Function} [callback] - Callback to execute after animation ends.
+   * @returns {KAnime}
+   */
+  kanime(properties, duration = 400, easing = 'linear', callback) {
+    // Expanded easings
+    const easings = {
+      linear: t => t,
+      ease: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      'ease-in': t => t * t,
+      'ease-out': t => t * (2 - t),
+      'ease-in-out': t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      'cubic-in': t => t * t * t,
+      'cubic-out': t => (--t) * t * t + 1,
+      'cubic-in-out': t => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+      'bounce': t => {
+        const n1 = 7.5625, d1 = 2.75;
+        if (t < 1 / d1) return n1 * t * t;
+        else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+        else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+      },
+      'elastic': t => {
+        return t === 0
+          ? 0
+          : t === 1
+          ? 1
+          : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * ((2 * Math.PI) / 3));
+      }
+    };
+
+    return this.kForEach(el => {
+      const start = {};
+      const end = {};
+      const units = {};
+      for (const prop in properties) {
+        const computed = window.getComputedStyle(el)[prop];
+        const match = /^([\d.+-]+)([a-z%]*)$/i.exec(computed);
+        start[prop] = match ? parseFloat(match[1]) : 0;
+        units[prop] = match ? match[2] : '';
+        end[prop] = parseFloat(properties[prop]);
+      }
+      const startTime = performance.now();
+      const animateFrame = now => {
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / duration);
+        const easeT = easings[easing] ? easings[easing](t) : t;
+        for (const prop in properties) {
+          const value = start[prop] + (end[prop] - start[prop]) * easeT;
+          el.style[prop] = value + units[prop];
+        }
+        if (t < 1) {
+          requestAnimationFrame(animateFrame);
+        } else if (typeof callback === 'function') {
+          callback.call(el);
+        }
+      };
+      requestAnimationFrame(animateFrame);
+    });
+  }
+
+  // =========================
   // Media
+  // =========================
 
   /**
    * Plays the selected <video> or <audio> elements.
@@ -411,7 +535,9 @@ class KAnime {
     }
   }
 
+  // =========================
   // Form
+  // =========================
 
   /**
    * Serializes form data into a query string.
@@ -563,7 +689,9 @@ class KAnime {
     }
   }
 
+  // =========================
   // Attribute and Style
+  // =========================
 
   /**
    * Gets or sets an attribute for the selected elements.
@@ -616,25 +744,6 @@ class KAnime {
    */
   kToggleClass(className) {
     return this.kForEach(el => el.classList.toggle(className));
-  }
-
-  // Utility
-
-  /**
-   * Checks if the browser supports required features.
-   * @returns {boolean}
-   */
-  static kIsModernBrowser() {
-    return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
-  }
-
-  /**
-   * Creates a new KAnime instance for the given selector.
-   * @param {string} selector
-   * @returns {KAnime}
-   */
-  static kSelect(selector) {
-    return new KAnime(selector);
   }
 }
 
