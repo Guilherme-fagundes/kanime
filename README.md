@@ -1,8 +1,8 @@
 # KAnime.js
 
-**KAnime** is a lightweight JavaScript micro-library for DOM manipulation, animations, event handling, and AJAX — all with zero dependencies.
+**KAnime** is a lightweight JavaScript micro-library for DOM manipulation, animations, event handling, forms, and media — all with zero dependencies.
 
-> A minimalist utility belt for working with the DOM, styling, events, and forms. Lightweight, chainable, and written in pure JavaScript.
+> A minimalist utility belt for working with the DOM, styling, events, forms, and media. Lightweight, chainable, and written in pure JavaScript.
 
 ---
 
@@ -25,38 +25,31 @@ Or CDN
 import KAnime from 'kanime';
 
 const el = new KAnime('.selector');
+// or use the global shortcut:
+const el = k('.selector');
 ```
 
 ---
 
 ## 📚 Examples of Usage
 
-The `KAnime` library can be used in two ways: the **traditional way** by instantiating the `KAnime` class, or the **simplified way** using the global `$` method. Below are examples for both approaches.
+The `KAnime` library can be used by instantiating the `KAnime` class or using the global `k` function.
 
-### **Traditional Usage**
+### **Animation Example**
 
-#### **1. Animation with `fadeIn`**
 ```javascript
-// Instantiate KAnime and apply the fadeIn effect
-const element = new KAnime('.my-element');
-element.fadeIn();
+// Fade in effect
+k('.my-element').kShowFade();
 ```
 
-#### **2. Animation with `slideDown`**
-```javascript
-// Instantiate KAnime and apply the slideDown effect
-const element = new KAnime('.my-element');
-element.slideDown();
-```
+### **Form Handling Example**
 
-#### **3. Form Handling**
 ```javascript
-// Serialize form data and send it via AJAX
-const form = new KAnime('form');
-form.submit((data, formElement) => {
+// Serialize form data and send it via HTTP
+k('form').kOnFormSubmit((data, formElement) => {
   console.log('Form data:', data);
-  // Send the data via AJAX
-  new KAnime(formElement).ajaxSubmit({
+  // Send the data via HTTP
+  k(formElement).kSubmitForm({
     method: 'POST',
     url: '/submit',
     data,
@@ -64,92 +57,60 @@ form.submit((data, formElement) => {
 });
 ```
 
-#### **4. Style Manipulation**
+### **Style Manipulation Example**
+
 ```javascript
 // Change the style of an element
-const element = new KAnime('.my-element');
-element.css('color', 'red');
+k('.my-element').kStyle('color', 'red');
 ```
 
----
+### **Media Example**
 
-### **Simplified Usage**
-
-#### **1. Animation with `fadeIn`**
 ```javascript
-// Select an element and apply the fadeIn effect
-$('.my-element').fadeIn();
-```
-
-#### **2. Animation with `slideDown`**
-```javascript
-// Select an element and apply the slideDown effect
-$('.my-element').slideDown();
-```
-
-#### **3. Form Handling**
-```javascript
-// Serialize form data and send it via AJAX
-$('form').submit((data, form) => {
-  console.log('Form data:', data);
-  // Send the data via AJAX
-  $(form).ajaxSubmit({
-    method: 'POST',
-    url: '/submit',
-    data,
-  });
-});
-```
-
-#### **4. Style Manipulation**
-```javascript
-// Change the style of an element
-$('.my-element').css('color', 'red');
+// Play a video
+k('video').kPlayMedia();
+k('video').kSetVolume(0.5);
 ```
 
 ---
 
 ## ✨ Features
 
-Below is a comprehensive list of all methods available in the `KAnime` class, along with their usage:
+Below is a list of all main methods available in the `KAnime` class, with their usage:
 
-| **Method**         | **Description**                                                                 | **Usage**                                                                                     |
-|--------------------|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| `append(content)`  | Appends content to each selected element.                                      | `$('.my-element').append('<div>New Content</div>');`                                         |
-| `prepend(content)` | Prepends content to each selected element.                                     | `$('.my-element').prepend('<div>New Content</div>');`                                        |
-| `before(content)`  | Inserts content before each selected element.                                  | `$('.my-element').before('<div>Before Content</div>');`                                      |
-| `after(content)`   | Inserts content after each selected element.                                   | `$('.my-element').after('<div>After Content</div>');`                                        |
-| `remove()`         | Removes all selected elements from the DOM.                                    | `$('.my-element').remove();`                                                                 |
-| `clone(deep)`      | Clones the selected elements.                                                  | `const clone = $('.my-element').clone();`                                                    |
-| `wrap(wrapper)`    | Wraps each selected element with the specified HTML structure.                 | `$('.my-element').wrap('<div class="wrapper"></div>');`                                    |
-| `unwrap()`         | Removes the parent of each selected element, keeping the elements in the DOM.  | `$('.my-element').unwrap();`                                                                 |
-| `on(event, handler)` | Adds an event listener to the selected elements.                              | `$('.my-element').on('click', () => console.log('Clicked!'));`                               |
-| `off(event, handler)` | Removes an event listener from the selected elements.                       | `$('.my-element').off('click', handler);`                                                   |
-| `fadeIn()`         | Applies a fade-in effect using CSS transitions.                                | `$('.my-element').fadeIn();`                                                                 |
-| `fadeOut()`        | Applies a fade-out effect using CSS transitions.                               | `$('.my-element').fadeOut();`                                                                |
-| `slideUp()`        | Applies a slide-up effect using CSS transitions.                               | `$('.my-element').slideUp();`                                                                |
-| `slideDown()`      | Applies a slide-down effect using CSS transitions.                             | `$('.my-element').slideDown();`                                                              |
-| `serialize()`      | Serializes form data into a string.                                             | `const data = $('form').serialize();`                                                        |
-| `ajaxSubmit(options)` | Submits a form via AJAX with support for file uploads.                      | `$('form').ajaxSubmit({ method: 'POST', url: '/submit' });`                                  |
-| `css(property, value)` | Gets or sets the style of the selected elements.                           | `$('.my-element').css('color', 'red');`                                                      |
-| `addClass(className)` | Adds a CSS class to all selected elements.                                  | `$('.my-element').addClass('active');`                                                       |
-| `removeClass(className)` | Removes a CSS class from all selected elements.                          | `$('.my-element').removeClass('active');`                                                    |
-| `toggleClass(className)` | Toggles a CSS class on all selected elements.                            | `$('.my-element').toggleClass('active');`                                                    |
-| `attr(attribute, value)` | Gets or sets an attribute of the selected elements.                      | `$('.my-element').attr('data-id', '123');`                                                   |
-| `width(value)`      | Gets or sets the width of the selected elements.                              | `$('.my-element').width(300);`                                                               |
-| `height(value)`     | Gets or sets the height of the selected elements.                             | `$('.my-element').height(200);`                                                              |
-| `scroll(x, y)`      | Gets or sets the scroll position of the selected elements.                    | `$('.my-element').scroll(0, 100);`                                                           |
-| `offset()`          | Gets the offset of the first selected element relative to the document.       | `const offset = $('.my-element').offset();`                                                  |
-| `play()`            | Plays the selected video or audio elements.                                   | `$('video').play();`                                                                          |
-| `pause()`           | Pauses the selected video or audio elements.                                  | `$('video').pause();`                                                                         |
-| `currentTime(time)` | Gets or sets the current playback time of the selected video or audio.        | `$('video').currentTime(10);`                                                                |
-| `volume(value)`     | Gets or sets the volume of the selected video or audio elements.              | `$('video').volume(0.5);`                                                                     |
-| `mute(mute)`        | Mutes or unmutes the selected video or audio elements.                        | `$('video').mute(true);`                                                                      |
-| `isPlaying()`       | Checks if the selected video or audio elements are currently playing.         | `const playing = $('video').isPlaying();`                                                    |
-| `loadSource(src)`   | Loads a new source into the selected video or audio elements.                 | `$('video').loadSource('video.mp4');`                                                        |
-| `playbackRate(rate)` | Gets or sets the playback rate of the selected video or audio elements.      | `$('video').playbackRate(1.5);`                                                               |
-
-This table provides a quick reference for all available methods and their usage examples.
+| **Method**             | **Description**                                              | **Usage**                                      |
+|------------------------|-------------------------------------------------------------|------------------------------------------------|
+| `kAdd(content)`        | Appends content to each selected element.                   | `k('.el').kAdd('<div>New</div>');`             |
+| `kAddFirst(content)`   | Prepends content to each selected element.                  | `k('.el').kAddFirst('<div>New</div>');`        |
+| `kInsertBefore(content)`| Inserts content before each selected element.              | `k('.el').kInsertBefore('<div>Before</div>');` |
+| `kInsertAfter(content)`| Inserts content after each selected element.                | `k('.el').kInsertAfter('<div>After</div>');`   |
+| `kRemove()`            | Removes all selected elements from the DOM.                 | `k('.el').kRemove();`                          |
+| `kClone(deep)`         | Clones the selected elements.                               | `const clone = k('.el').kClone();`             |
+| `kWrapWith(wrapper)`   | Wraps each selected element with the specified HTML.        | `k('.el').kWrapWith('<div class="wrap"></div>');` |
+| `kUnwrap()`            | Removes the parent of each selected element.                | `k('.el').kUnwrap();`                          |
+| `kListen(event, handler)` | Adds an event listener to the selected elements.         | `k('.el').kListen('click', handler);`          |
+| `kRemoveListener(event, handler)` | Removes an event listener.                       | `k('.el').kRemoveListener('click', handler);`  |
+| `kShowFade()`          | Shows the elements with a fade-in animation.                | `k('.el').kShowFade();`                        |
+| `kHideFade()`          | Hides the elements with a fade-out animation.               | `k('.el').kHideFade();`                        |
+| `kToggleFade()`        | Toggles fade-in/fade-out based on visibility.               | `k('.el').kToggleFade();`                      |
+| `kFormData()`          | Serializes form data into a query string.                   | `k('form').kFormData();`                       |
+| `kFormArray()`         | Serializes form data into an array of objects.              | `k('form').kFormArray();`                      |
+| `kValue(value)`        | Gets or sets the value of form fields.                      | `k('input').kValue('new');`                    |
+| `kOnFormSubmit(cb)`    | Adds a submit event handler to forms.                       | `k('form').kOnFormSubmit(cb);`                 |
+| `kSubmitForm(options)` | Submits a form via HTTP request.                            | `k('form').kSubmitForm({method: 'POST'});`     |
+| `kAttr(attr, value)`   | Gets or sets an attribute.                                  | `k('.el').kAttr('data-id', '1');`              |
+| `kStyle(prop, value)`  | Gets or sets a CSS property.                                | `k('.el').kStyle('color', 'blue');`            |
+| `kAddClass(className)` | Adds a CSS class.                                           | `k('.el').kAddClass('active');`                |
+| `kRemoveClass(className)` | Removes a CSS class.                                     | `k('.el').kRemoveClass('active');`             |
+| `kToggleClass(className)` | Toggles a CSS class.                                     | `k('.el').kToggleClass('active');`             |
+| `kPlayMedia()`         | Plays the selected video or audio elements.                 | `k('video').kPlayMedia();`                     |
+| `kPauseMedia()`        | Pauses the selected video or audio elements.                | `k('video').kPauseMedia();`                    |
+| `kSetVolume(value)`    | Sets the volume for video/audio elements.                   | `k('video').kSetVolume(0.5);`                  |
+| `kMuteMedia()`         | Mutes video/audio elements.                                 | `k('video').kMuteMedia();`                     |
+| `kUnmuteMedia()`       | Unmutes video/audio elements.                               | `k('video').kUnmuteMedia();`                   |
+| `kSeekMedia(time)`     | Seeks to a specific time in video/audio elements.           | `k('video').kSeekMedia(10);`                   |
+| `kGetMediaTime()`      | Gets the current playback time.                             | `k('video').kGetMediaTime();`                  |
+| `kGetMediaDuration()`  | Gets the duration of the media.                             | `k('video').kGetMediaDuration();`              |
 
 ---
 
@@ -159,6 +120,8 @@ This table provides a quick reference for all available methods and their usage 
 
 ```js
 const el = new KAnime('.my-class');
+// or
+const el = k('.my-class');
 ```
 
 ---
@@ -166,11 +129,11 @@ const el = new KAnime('.my-class');
 ### 🎨 Style & Class Methods
 
 ```js
-el.css('color', 'red');             // Set style
-el.css('width');                    // Get style
-el.addClass('active');              // Add class
-el.removeClass('active');           // Remove class
-el.toggleClass('active');           // Toggle class
+el.kStyle('color', 'red');             // Set style
+el.kStyle('width');                    // Get style
+el.kAddClass('active');                // Add class
+el.kRemoveClass('active');             // Remove class
+el.kToggleClass('active');             // Toggle class
 ```
 
 ---
@@ -178,11 +141,8 @@ el.toggleClass('active');           // Toggle class
 ### ✍️ Content & Attributes
 
 ```js
-el.text('Hello world');             // Set text
-el.html('<strong>Bold</strong>');   // Set HTML
-el.attr('data-id', '123');          // Set attribute
-el.attr('data-id');                 // Get attribute
-el.removeAttr('data-id');           // Remove attribute
+el.kAttr('data-id', '123');            // Set attribute
+el.kAttr('data-id');                   // Get attribute
 ```
 
 ---
@@ -190,15 +150,9 @@ el.removeAttr('data-id');           // Remove attribute
 ### 🎬 Effects & Animations
 
 ```js
-el.fadeIn();                        // Fade in
-el.fadeOut();                       // Fade out
-el.slideUp();                       // Slide up
-el.slideDown();                     // Slide down
-
-// Custom animation with easing
-el.animate({ width: 300, height: 150 }, 600, 'ease-in-out', () => {
-  console.log('Animation completed!');
-});
+el.kShowFade();                        // Fade in
+el.kHideFade();                        // Fade out
+el.kToggleFade();                      // Toggle fade
 ```
 
 ---
@@ -206,24 +160,9 @@ el.animate({ width: 300, height: 150 }, 600, 'ease-in-out', () => {
 ### 🧠 Events
 
 ```js
-el.on('click', () => console.log('Clicked!'));
-el.on('mouseenter', () => console.log('Hovered!'));
-el.on('keydown', e => console.log('Key:', e.key));
-el.off('click', handler);           // Remove event listener
-el.trigger('customEvent');          // Trigger custom event
-```
-
----
-
-### ✅ Utility Methods
-
-```js
-el.isVisible();                     // Returns true/false
-el.hasClass('active');              // Returns true/false
-el.hasAttr('data-id');              // Returns true/false
-el.isChecked();                     // For checkboxes/radios
-el.isEnabled();                     // true if not disabled
-el.isDisabled();                    // true if disabled
+el.kListen('click', () => console.log('Clicked!'));
+el.kRemoveListener('click', handler);           // Remove event listener
+el.kDispatch('customEvent');                    // Trigger custom event
 ```
 
 ---
@@ -233,29 +172,19 @@ el.isDisabled();                    // true if disabled
 #### Submit normally
 
 ```js
-new KAnime('#myForm').submit();
-```
-
-#### Submit via AJAX (supports file uploads)
-
-```js
-new KAnime('#myForm').ajaxSubmit({
-  url: '/submit-endpoint',
-  method: 'POST',
-  success: (data) => console.log('Success:', data),
-  error: (err) => console.error('Error:', err)
+k('#myForm').kOnFormSubmit((data, form) => {
+  // handle data
 });
 ```
 
----
-
-### 📏 Dimensions & Positioning
+#### Submit via HTTP
 
 ```js
-el.width(300);                      // Set width
-el.height(200);                     // Set height
-el.scroll(0, 100);                  // Set scroll position
-const offset = el.offset();         // Get offset relative to document
+k('#myForm').kSubmitForm({
+  url: '/submit-endpoint',
+  method: 'POST',
+  // ...other options
+});
 ```
 
 ---
@@ -263,14 +192,14 @@ const offset = el.offset();         // Get offset relative to document
 ### 🎥 Media Methods
 
 ```js
-el.play();                          // Play video/audio
-el.pause();                         // Pause video/audio
-el.currentTime(10);                 // Set playback time
-el.volume(0.5);                     // Set volume
-el.mute(true);                      // Mute/unmute
-el.isPlaying();                     // Check if playing
-el.loadSource('video.mp4');         // Load new source
-el.playbackRate(1.5);               // Set playback rate
+el.kPlayMedia();                          // Play video/audio
+el.kPauseMedia();                         // Pause video/audio
+el.kSetVolume(0.5);                       // Set volume
+el.kMuteMedia();                          // Mute
+el.kUnmuteMedia();                        // Unmute
+el.kSeekMedia(10);                        // Seek to 10s
+el.kGetMediaTime();                       // Get current time
+el.kGetMediaDuration();                   // Get duration
 ```
 
 ---
@@ -278,45 +207,17 @@ el.playbackRate(1.5);               // Set playback rate
 ### 🔄 DOM Manipulation
 
 ```js
-el.append('<div>New Content</div>'); // Append content
-el.prepend('<div>New Content</div>');// Prepend content
-el.before('<div>Before Content</div>'); // Insert before
-el.after('<div>After Content</div>');   // Insert after
-el.remove();                          // Remove element
-el.clone();                           // Clone element
-el.wrap('<div class="wrapper"></div>'); // Wrap element
-el.unwrap();                          // Unwrap parent
+el.kAdd('<div>New Content</div>');        // Append content
+el.kAddFirst('<div>New Content</div>');   // Prepend content
+el.kInsertBefore('<div>Before</div>');    // Insert before
+el.kInsertAfter('<div>After</div>');      // Insert after
+el.kRemove();                             // Remove element
+el.kClone();                              // Clone element
+el.kWrapWith('<div class="wrapper"></div>'); // Wrap element
+el.kUnwrap();                             // Unwrap parent
 ```
 
 ---
-
-### 🔍 Traversal
-
-```js
-el.parent();                         // Get parent
-el.children();                       // Get children
-el.siblings();                       // Get siblings
-el.find('.child');                   // Find descendants
-el.closest('.parent');               // Find closest ancestor
-el.next();                           // Get next sibling
-el.prev();                           // Get previous sibling
-```
-
----
-
-## What's New
-
-### Support for Advanced Selectors
-- Static method `select` to create KAnime instances with advanced CSS selectors.
-
-### Virtual DOM Manipulation
-- Static method `createVirtualElement` to create DOM elements virtually before adding them to the document.
-
-### Plugin Support
-- API for registering and using plugins with the `use` and `callPlugin` methods.
-
-### Internationalization (i18n) Support
-- Support for string translation with the static method `i18n.translate` and language configuration with `i18n.setLocale`.
 
 ## 🤝 Contributing
 
