@@ -671,10 +671,7 @@ class KAnime {
 
   /**
    * Removes a CSS class from all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  removeClass(className) {
+   * @param {string} className) {
     return this.each(el => el.classList.remove(className));
   }
 

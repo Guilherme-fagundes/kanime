@@ -581,18 +581,16 @@ const _KAnime = class _KAnime {
     return this.each((el) => el.classList.add(className));
   }
   /**
-   * Removes a CSS class from all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  removeClass(className) {
-    return this.each((el) => el.classList.remove(className));
-  }
-  /**
-   * Toggles a CSS class on all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
+     * Removes a CSS class from all selected elements.
+     * @param {string} className) {
+      return this.each(el => el.classList.remove(className));
+    }
+  
+    /**
+     * Toggles a CSS class on all selected elements.
+     * @param {string} className - Class name.
+     * @returns {KAnime} - Returns the current instance for chaining.
+     */
   toggleClass(className) {
     return this.each((el) => el.classList.toggle(className));
   }
