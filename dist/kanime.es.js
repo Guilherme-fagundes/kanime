@@ -262,20 +262,33 @@ const _KAnime = class _KAnime {
       if (window.getComputedStyle(el).display === "none") {
         return;
       }
-      window.getComputedStyle(el);
-      el.style.height = `${el.offsetHeight}px`;
+      const style = window.getComputedStyle(el);
+      const height = el.offsetHeight;
+      const paddingTop = parseFloat(style.paddingTop);
+      const paddingBottom = parseFloat(style.paddingBottom);
+      const marginTop = parseFloat(style.marginTop);
+      const marginBottom = parseFloat(style.marginBottom);
+      el.style.height = `${height}px`;
+      el.style.paddingTop = `${paddingTop}px`;
+      el.style.paddingBottom = `${paddingBottom}px`;
+      el.style.marginTop = `${marginTop}px`;
+      el.style.marginBottom = `${marginBottom}px`;
       el.style.overflow = "hidden";
-      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out`;
+      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
       void el.offsetWidth;
       requestAnimationFrame(() => {
         el.style.height = "0";
         el.style.paddingTop = "0";
         el.style.paddingBottom = "0";
+        el.style.marginTop = "0";
+        el.style.marginBottom = "0";
         setTimeout(() => {
           el.style.display = "none";
           el.style.removeProperty("height");
           el.style.removeProperty("padding-top");
           el.style.removeProperty("padding-bottom");
+          el.style.removeProperty("margin-top");
+          el.style.removeProperty("margin-bottom");
           el.style.removeProperty("overflow");
           el.style.removeProperty("transition");
         }, this.duration);
@@ -292,16 +305,32 @@ const _KAnime = class _KAnime {
         return;
       }
       el.style.display = "block";
-      window.getComputedStyle(el);
+      const style = window.getComputedStyle(el);
       const height = el.scrollHeight;
+      const paddingTop = parseFloat(style.paddingTop);
+      const paddingBottom = parseFloat(style.paddingBottom);
+      const marginTop = parseFloat(style.marginTop);
+      const marginBottom = parseFloat(style.marginBottom);
       el.style.height = "0";
+      el.style.paddingTop = "0";
+      el.style.paddingBottom = "0";
+      el.style.marginTop = "0";
+      el.style.marginBottom = "0";
       el.style.overflow = "hidden";
-      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out`;
+      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
       void el.offsetWidth;
       requestAnimationFrame(() => {
         el.style.height = `${height}px`;
+        el.style.paddingTop = `${paddingTop}px`;
+        el.style.paddingBottom = `${paddingBottom}px`;
+        el.style.marginTop = `${marginTop}px`;
+        el.style.marginBottom = `${marginBottom}px`;
         setTimeout(() => {
           el.style.removeProperty("height");
+          el.style.removeProperty("padding-top");
+          el.style.removeProperty("padding-bottom");
+          el.style.removeProperty("margin-top");
+          el.style.removeProperty("margin-bottom");
           el.style.removeProperty("overflow");
           el.style.removeProperty("transition");
         }, this.duration);
