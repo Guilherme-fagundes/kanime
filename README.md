@@ -206,9 +206,11 @@ el.animate({ width: 300, height: 150 }, 600, 'ease-in-out', () => {
 ### 🧠 Events
 
 ```js
-el.onClick(() => console.log('Clicked!'));
+el.on('click', () => console.log('Clicked!'));
 el.on('mouseenter', () => console.log('Hovered!'));
-el.onKeyDown(e => console.log('Key:', e.key));
+el.on('keydown', e => console.log('Key:', e.key));
+el.off('click', handler);           // Remove event listener
+el.trigger('customEvent');          // Trigger custom event
 ```
 
 ---
@@ -245,7 +247,64 @@ new KAnime('#myForm').ajaxSubmit({
 });
 ```
 
-## Recent Improvements
+---
+
+### 📏 Dimensions & Positioning
+
+```js
+el.width(300);                      // Set width
+el.height(200);                     // Set height
+el.scroll(0, 100);                  // Set scroll position
+const offset = el.offset();         // Get offset relative to document
+```
+
+---
+
+### 🎥 Media Methods
+
+```js
+el.play();                          // Play video/audio
+el.pause();                         // Pause video/audio
+el.currentTime(10);                 // Set playback time
+el.volume(0.5);                     // Set volume
+el.mute(true);                      // Mute/unmute
+el.isPlaying();                     // Check if playing
+el.loadSource('video.mp4');         // Load new source
+el.playbackRate(1.5);               // Set playback rate
+```
+
+---
+
+### 🔄 DOM Manipulation
+
+```js
+el.append('<div>New Content</div>'); // Append content
+el.prepend('<div>New Content</div>');// Prepend content
+el.before('<div>Before Content</div>'); // Insert before
+el.after('<div>After Content</div>');   // Insert after
+el.remove();                          // Remove element
+el.clone();                           // Clone element
+el.wrap('<div class="wrapper"></div>'); // Wrap element
+el.unwrap();                          // Unwrap parent
+```
+
+---
+
+### 🔍 Traversal
+
+```js
+el.parent();                         // Get parent
+el.children();                       // Get children
+el.siblings();                       // Get siblings
+el.find('.child');                   // Find descendants
+el.closest('.parent');               // Find closest ancestor
+el.next();                           // Get next sibling
+el.prev();                           // Get previous sibling
+```
+
+---
+
+## What's New
 
 ### Support for Advanced Selectors
 - Static method `select` to create KAnime instances with advanced CSS selectors.
@@ -258,44 +317,6 @@ new KAnime('#myForm').ajaxSubmit({
 
 ### Internationalization (i18n) Support
 - Support for string translation with the static method `i18n.translate` and language configuration with `i18n.setLocale`.
-
-## Simplified Usage
-
-The `KAnime` library allows you to manipulate elements in a simple and intuitive way using the global `$` method. Here are usage examples for different functionalities:
-
-### **1. Animation with `fadeIn`**
-```javascript
-// Select an element and apply the fadeIn effect
-$('.my-element').fadeIn();
-```
-
-### **2. Animation with `slideDown`**
-```javascript
-// Select an element and apply the slideDown effect
-$('.my-element').slideDown();
-```
-
-### **3. Form Handling**
-```javascript
-// Serialize form data and send it via AJAX
-$('form').submit((data, form) => {
-  console.log('Form data:', data);
-  // Send the data via AJAX
-  $(form).ajaxSubmit({
-    method: 'POST',
-    url: '/submit',
-    data,
-  });
-});
-```
-
-### **4. Style Manipulation**
-```javascript
-// Change the style of an element
-$('.my-element').css('color', 'red');
-```
-
-These examples demonstrate how the `KAnime` library can be used to manipulate elements, apply animations, manage forms, and change styles in a simple and efficient way.
 
 ## 🤝 Contributing
 
