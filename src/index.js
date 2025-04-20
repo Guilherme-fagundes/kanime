@@ -8,7 +8,11 @@ class KAnime {
 
   /**
    * Creates an instance of KAnime.
-   * @param {string|HTMLElement|NodeList} selector - CSS selector, HTML element, or NodeList.
+   * @example
+   * // Select elements by CSS selector
+   * const el = new KAnime('.my-class');
+   * // Or use the global shortcut
+   * const el = k('.my-class');
    */
   constructor(selector) {
     if (!KAnime.kIsModernBrowser()) {
@@ -32,6 +36,8 @@ class KAnime {
    * Executes a callback for each selected element.
    * @param {Function} callback
    * @returns {KAnime}
+   * @example
+   * k('.item').kForEach(el => console.log(el));
    */
   kForEach(callback) {
     this.elements.forEach(callback);
@@ -42,6 +48,8 @@ class KAnime {
    * Sets the default animation duration.
    * @param {number} ms
    * @returns {KAnime}
+   * @example
+   * k('.box').kSetDuration(1000);
    */
   kSetDuration(ms) {
     this.kDuration = ms;
@@ -51,6 +59,8 @@ class KAnime {
   /**
    * Checks if the browser supports required features.
    * @returns {boolean}
+   * @example
+   * if (KAnime.kIsModernBrowser()) { ... }
    */
   static kIsModernBrowser() {
     return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
@@ -60,6 +70,8 @@ class KAnime {
    * Creates a new KAnime instance for the given selector.
    * @param {string} selector
    * @returns {KAnime}
+   * @example
+   * const el = KAnime.kSelect('.my-class');
    */
   static kSelect(selector) {
     return new KAnime(selector);
@@ -68,6 +80,9 @@ class KAnime {
   /**
    * Returns the position and size of the first selected element relative to the document.
    * @returns {{top: number, left: number, width: number, height: number}}
+   * @example
+   * const pos = k('.box').kCalculate();
+   * // pos = { top, left, width, height }
    */
   kCalculate() {
     if (!this.elements[0]) {
@@ -91,6 +106,8 @@ class KAnime {
    * Adds content to the end of each selected element.
    * @param {string|HTMLElement} content
    * @returns {KAnime}
+   * @example
+   * k('.list').kAdd('<li>Item</li>');
    */
   kAdd(content) {
     return this.kForEach(el => {
@@ -106,6 +123,8 @@ class KAnime {
    * Adds content to the start of each selected element.
    * @param {string|HTMLElement} content
    * @returns {KAnime}
+   * @example
+   * k('.list').kAddFirst('<li>First</li>');
    */
   kAddFirst(content) {
     return this.kForEach(el => {
@@ -121,6 +140,8 @@ class KAnime {
    * Inserts content before each selected element.
    * @param {string|HTMLElement} content
    * @returns {KAnime}
+   * @example
+   * k('.item').kInsertBefore('<div>Before</div>');
    */
   kInsertBefore(content) {
     return this.kForEach(el => {
@@ -136,6 +157,8 @@ class KAnime {
    * Inserts content after each selected element.
    * @param {string|HTMLElement} content
    * @returns {KAnime}
+   * @example
+   * k('.item').kInsertAfter('<div>After</div>');
    */
   kInsertAfter(content) {
     return this.kForEach(el => {
@@ -150,6 +173,8 @@ class KAnime {
   /**
    * Removes all selected elements from the DOM.
    * @returns {KAnime}
+   * @example
+   * k('.item').kRemove();
    */
   kRemove() {
     return this.kForEach(el => {
@@ -163,6 +188,8 @@ class KAnime {
    * Clones the selected elements.
    * @param {boolean} deep
    * @returns {KAnime}
+   * @example
+   * const clone = k('.item').kClone();
    */
   kClone(deep = true) {
     const clones = this.elements.map(el => el.cloneNode(deep));
@@ -173,6 +200,8 @@ class KAnime {
    * Wraps each selected element with the specified HTML structure.
    * @param {string|HTMLElement} wrapper
    * @returns {KAnime}
+   * @example
+   * k('.item').kWrapWith('<div class="wrap"></div>');
    */
   kWrapWith(wrapper) {
     return this.kForEach(el => {
@@ -188,6 +217,8 @@ class KAnime {
   /**
    * Removes the parent of each selected element, keeping the elements in the DOM.
    * @returns {KAnime}
+   * @example
+   * k('.item').kUnwrap();
    */
   kUnwrap() {
     return this.kForEach(el => {
@@ -212,6 +243,11 @@ class KAnime {
    * @param {Function|string} handlerOrSelector - Handler function or selector for delegation.
    * @param {Function} [handler] - Handler function if delegation is used.
    * @returns {KAnime}
+   * @example
+   * // Direto
+   * k('.btn').kListen('click', e => alert('Clicked!'));
+   * // Delegação
+   * k('.container').kListen('click', 'button', e => alert(e.target.textContent));
    */
   kListen(events, handlerOrSelector, handler) {
     const eventList = events.split(/[,\s]+/);
@@ -237,6 +273,8 @@ class KAnime {
    * @param {string} event
    * @param {Function} handler
    * @returns {KAnime}
+   * @example
+   * k('.btn').kRemoveListener('click', handler);
    */
   kRemoveListener(event, handler) {
     return this.kForEach(el => el.removeEventListener(event, handler));
@@ -247,6 +285,8 @@ class KAnime {
    * @param {string} event
    * @param {Function} handler
    * @returns {KAnime}
+   * @example
+   * k('.btn').kOnce('click', () => alert('Clicked once!'));
    */
   kOnce(event, handler) {
     return this.kForEach(el => {
@@ -262,6 +302,8 @@ class KAnime {
    * Triggers an event on the selected elements.
    * @param {string} event
    * @returns {KAnime}
+   * @example
+   * k('.btn').kDispatch('click');
    */
   kDispatch(event) {
     return this.kForEach(el => {
@@ -275,6 +317,11 @@ class KAnime {
    * @param {Function} mouseEnterHandler
    * @param {Function} mouseLeaveHandler
    * @returns {KAnime}
+   * @example
+   * k('.item').kHover(
+   *   () => console.log('Mouse in'),
+   *   () => console.log('Mouse out')
+   * );
    */
   kHover(mouseEnterHandler, mouseLeaveHandler) {
     return this.kForEach(el => {
@@ -290,6 +337,8 @@ class KAnime {
   /**
    * Shows the elements with a fade-in animation.
    * @returns {KAnime}
+   * @example
+   * k('.box').kShowFade();
    */
   kShowFade() {
     return this.kForEach(el => {
@@ -308,6 +357,8 @@ class KAnime {
   /**
    * Hides the elements with a fade-out animation.
    * @returns {KAnime}
+   * @example
+   * k('.box').kHideFade();
    */
   kHideFade() {
     return this.kForEach(el => {
@@ -326,6 +377,8 @@ class KAnime {
   /**
    * Toggles fade-in/fade-out based on visibility.
    * @returns {KAnime}
+   * @example
+   * k('.box').kToggleFade();
    */
   kToggleFade() {
     return this.kForEach(el => {
@@ -342,9 +395,13 @@ class KAnime {
    * Animates CSS properties of the selected elements.
    * @param {Object} properties - CSS properties and their target values.
    * @param {number} duration - Animation duration in milliseconds.
-   * @param {string} [easing='linear'] - Easing function: 'linear' or 'ease'.
+   * @param {string} [easing='linear'] - Easing function: 'linear', 'ease', 'ease-in', etc.
    * @param {Function} [callback] - Callback to execute after animation ends.
    * @returns {KAnime}
+   * @example
+   * k('.box').kanime({ left: '200px', opacity: 0.5 }, 600, 'ease', () => {
+   *   console.log('Animation finished!');
+   * });
    */
   kanime(properties, duration = 400, easing = 'linear', callback) {
     // Expanded easings
@@ -410,6 +467,8 @@ class KAnime {
   /**
    * Plays the selected <video> or <audio> elements.
    * @returns {KAnime}
+   * @example
+   * k('video').kPlayMedia();
    */
   kPlayMedia() {
     return this.kForEach(el => {
@@ -424,6 +483,8 @@ class KAnime {
   /**
    * Pauses the selected <video> or <audio> elements.
    * @returns {KAnime}
+   * @example
+   * k('video').kPauseMedia();
    */
   kPauseMedia() {
     return this.kForEach(el => {
@@ -438,6 +499,8 @@ class KAnime {
   /**
    * Toggles play/pause for <video> or <audio> elements.
    * @returns {KAnime}
+   * @example
+   * k('video').kToggleMedia();
    */
   kToggleMedia() {
     return this.kForEach(el => {
@@ -457,6 +520,8 @@ class KAnime {
    * Sets the volume for <video> or <audio> elements.
    * @param {number} value
    * @returns {KAnime}
+   * @example
+   * k('video').kSetVolume(0.5);
    */
   kSetVolume(value) {
     return this.kForEach(el => {
@@ -471,6 +536,8 @@ class KAnime {
   /**
    * Mutes <video> or <audio> elements.
    * @returns {KAnime}
+   * @example
+   * k('video').kMuteMedia();
    */
   kMuteMedia() {
     return this.kForEach(el => {
@@ -485,6 +552,8 @@ class KAnime {
   /**
    * Unmutes <video> or <audio> elements.
    * @returns {KAnime}
+   * @example
+   * k('video').kUnmuteMedia();
    */
   kUnmuteMedia() {
     return this.kForEach(el => {
@@ -500,6 +569,8 @@ class KAnime {
    * Seeks to a specific time in <video> or <audio> elements.
    * @param {number} time
    * @returns {KAnime}
+   * @example
+   * k('video').kSeekMedia(10);
    */
   kSeekMedia(time) {
     return this.kForEach(el => {
@@ -514,6 +585,8 @@ class KAnime {
   /**
    * Gets the current playback time of the first <video> or <audio> element.
    * @returns {number}
+   * @example
+   * const t = k('video').kGetMediaTime();
    */
   kGetMediaTime() {
     if (this.elements[0].tagName === 'VIDEO' || this.elements[0].tagName === 'AUDIO') {
@@ -526,6 +599,8 @@ class KAnime {
   /**
    * Gets the duration of the first <video> or <audio> element.
    * @returns {number}
+   * @example
+   * const d = k('video').kGetMediaDuration();
    */
   kGetMediaDuration() {
     if (this.elements[0].tagName === 'VIDEO' || this.elements[0].tagName === 'AUDIO') {
@@ -542,6 +617,8 @@ class KAnime {
   /**
    * Serializes form data into a query string.
    * @returns {string}
+   * @example
+   * const params = k('form').kFormData();
    */
   kFormData() {
     const form = this.elements[0];
@@ -568,6 +645,8 @@ class KAnime {
   /**
    * Serializes form data into an array of objects.
    * @returns {Array}
+   * @example
+   * const arr = k('form').kFormArray();
    */
   kFormArray() {
     const form = this.elements[0];
@@ -594,6 +673,9 @@ class KAnime {
    * Gets or sets the value of form fields.
    * @param {any} value
    * @returns {any|KAnime}
+   * @example
+   * k('input').kValue('novo valor');
+   * const v = k('input').kValue();
    */
   kValue(value) {
     if (value === undefined) {
@@ -608,6 +690,8 @@ class KAnime {
   /**
    * Alias for kFormData.
    * @returns {string}
+   * @example
+   * const params = k('form').kFormParams();
    */
   kFormParams() {
     return this.kFormData();
@@ -617,6 +701,8 @@ class KAnime {
    * Adds a submit event handler to forms.
    * @param {Function} callback
    * @returns {KAnime}
+   * @example
+   * k('form').kOnFormSubmit((data, form) => { ... });
    */
   kOnFormSubmit(callback) {
     return this.kForEach(el => {
@@ -637,6 +723,8 @@ class KAnime {
    * Submits a form via HTTP request.
    * @param {Object} options
    * @returns {Promise}
+   * @example
+   * k('form').kSubmitForm({ method: 'POST', json: true });
    */
   async kSubmitForm(options = {}) {
     const form = this.elements[0];
@@ -698,6 +786,9 @@ class KAnime {
    * @param {string} attribute
    * @param {any} value
    * @returns {any|KAnime}
+   * @example
+   * k('.item').kAttr('data-id', '123');
+   * const id = k('.item').kAttr('data-id');
    */
   kAttr(attribute, value) {
     if (value === undefined) {
@@ -711,6 +802,9 @@ class KAnime {
    * @param {string} property
    * @param {any} value
    * @returns {any|KAnime}
+   * @example
+   * k('.item').kStyle('color', 'red');
+   * const color = k('.item').kStyle('color');
    */
   kStyle(property, value) {
     if (value === undefined) {
@@ -723,6 +817,8 @@ class KAnime {
    * Adds a CSS class to the selected elements.
    * @param {string} className
    * @returns {KAnime}
+   * @example
+   * k('.item').kAddClass('active');
    */
   kAddClass(className) {
     return this.kForEach(el => el.classList.add(className));
@@ -732,6 +828,8 @@ class KAnime {
    * Removes a CSS class from the selected elements.
    * @param {string} className
    * @returns {KAnime}
+   * @example
+   * k('.item').kRemoveClass('active');
    */
   kRemoveClass(className) {
     return this.kForEach(el => el.classList.remove(className));
@@ -741,6 +839,8 @@ class KAnime {
    * Toggles a CSS class on the selected elements.
    * @param {string} className
    * @returns {KAnime}
+   * @example
+   * k('.item').kToggleClass('active');
    */
   kToggleClass(className) {
     return this.kForEach(el => el.classList.toggle(className));
