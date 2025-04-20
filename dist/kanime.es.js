@@ -275,7 +275,7 @@ const _KAnime = class _KAnime {
       el.style.marginBottom = `${marginBottom}px`;
       el.style.overflow = "hidden";
       el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
-      void el.offsetWidth;
+      void el.offsetHeight;
       requestAnimationFrame(() => {
         el.style.height = "0";
         el.style.paddingTop = "0";
@@ -318,7 +318,7 @@ const _KAnime = class _KAnime {
       el.style.marginBottom = "0";
       el.style.overflow = "hidden";
       el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
-      void el.offsetWidth;
+      void el.offsetHeight;
       requestAnimationFrame(() => {
         el.style.height = `${height}px`;
         el.style.paddingTop = `${paddingTop}px`;

@@ -317,8 +317,8 @@ class KAnime {
       el.style.overflow = 'hidden';
       el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
 
-      // Ensure reflow to apply transition
-      void el.offsetWidth;
+      // Trigger reflow to apply transition
+      void el.offsetHeight;
 
       requestAnimationFrame(() => {
         el.style.height = '0';
@@ -367,8 +367,8 @@ class KAnime {
       el.style.overflow = 'hidden';
       el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
 
-      // Ensure reflow to apply transition
-      void el.offsetWidth;
+      // Trigger reflow to apply transition
+      void el.offsetHeight;
 
       requestAnimationFrame(() => {
         el.style.height = `${height}px`;
