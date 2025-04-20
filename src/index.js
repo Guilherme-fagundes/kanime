@@ -1360,4 +1360,7 @@ if (typeof window !== 'undefined') {
   window.$ = $;
 }
 
+window.KAnime = KAnime;
+window.$ = $;
+
 export default KAnime;

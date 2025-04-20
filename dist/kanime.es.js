@@ -254,81 +254,6 @@ const _KAnime = class _KAnime {
     });
   }
   /**
-   * Applies a slide-up effect using CSS transitions for better performance.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  slideUp() {
-    return this.each((el) => {
-      if (window.getComputedStyle(el).display === "none") return;
-      const style = window.getComputedStyle(el);
-      const originalHeight = el.offsetHeight;
-      const originalPaddingTop = style.paddingTop;
-      const originalPaddingBottom = style.paddingBottom;
-      const originalTransition = style.transition;
-      el.style.transition = "none";
-      el.style.boxSizing = "border-box";
-      el.style.height = originalHeight + "px";
-      el.style.paddingTop = originalPaddingTop;
-      el.style.paddingBottom = originalPaddingBottom;
-      el.style.overflow = "hidden";
-      void el.offsetHeight;
-      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
-      requestAnimationFrame(() => {
-        el.style.height = "0";
-        el.style.paddingTop = "0";
-        el.style.paddingBottom = "0";
-        setTimeout(() => {
-          el.style.display = "none";
-          el.style.removeProperty("height");
-          el.style.removeProperty("padding-top");
-          el.style.removeProperty("padding-bottom");
-          el.style.removeProperty("overflow");
-          el.style.transition = originalTransition;
-          el.style.removeProperty("box-sizing");
-        }, this.duration);
-      });
-    });
-  }
-  /**
-   * Applies a slide-down effect using CSS transitions for better performance.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  slideDown() {
-    return this.each((el) => {
-      if (window.getComputedStyle(el).display !== "none") return;
-      el.style.removeProperty("display");
-      let display = window.getComputedStyle(el).display;
-      if (display === "none") display = "block";
-      el.style.display = display;
-      const style = window.getComputedStyle(el);
-      const targetHeight = el.scrollHeight;
-      const targetPaddingTop = style.paddingTop;
-      const targetPaddingBottom = style.paddingBottom;
-      const originalTransition = style.transition;
-      el.style.transition = "none";
-      el.style.boxSizing = "border-box";
-      el.style.height = "0";
-      el.style.paddingTop = "0";
-      el.style.paddingBottom = "0";
-      el.style.overflow = "hidden";
-      void el.offsetHeight;
-      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
-      requestAnimationFrame(() => {
-        el.style.height = targetHeight + "px";
-        el.style.paddingTop = targetPaddingTop;
-        el.style.paddingBottom = targetPaddingBottom;
-        setTimeout(() => {
-          el.style.removeProperty("height");
-          el.style.removeProperty("padding-top");
-          el.style.removeProperty("padding-bottom");
-          el.style.removeProperty("overflow");
-          el.style.transition = originalTransition;
-          el.style.removeProperty("box-sizing");
-        }, this.duration);
-      });
-    });
-  }
-  /**
    * Toggles between fadeIn and fadeOut based on the element's visibility.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
@@ -343,22 +268,9 @@ const _KAnime = class _KAnime {
     });
   }
   /**
-   * Toggles between slideUp and slideDown based on the element's visibility.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  slideToggle() {
-    return this.each((el) => {
-      const isHidden = window.getComputedStyle(el).display === "none";
-      if (isHidden) {
-        this.slideDown();
-      } else {
-        this.slideUp();
-      }
-    });
-  }
-  /**
-   * Applies a slide-up effect using CSS transitions, jQuery-like.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Slide up (hide) the matched elements with a smooth animation (jQuery-like).
+   * @param {number} [duration=this.duration] - Duration in ms.
+   * @returns {KAnime}
    */
   slideUp(duration = this.duration) {
     return this.each((el) => {
@@ -394,8 +306,9 @@ const _KAnime = class _KAnime {
     });
   }
   /**
-   * Applies a slide-down effect using CSS transitions, jQuery-like.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Slide down (show) the matched elements with a smooth animation (jQuery-like).
+   * @param {number} [duration=this.duration] - Duration in ms.
+   * @returns {KAnime}
    */
   slideDown(duration = this.duration) {
     return this.each((el) => {
@@ -431,6 +344,21 @@ const _KAnime = class _KAnime {
           el.style.removeProperty("box-sizing");
         }, duration);
       });
+    });
+  }
+  /**
+   * Toggle slide up/down based on visibility (jQuery-like).
+   * @param {number} [duration=this.duration]
+   * @returns {KAnime}
+   */
+  slideToggle(duration = this.duration) {
+    return this.each((el) => {
+      const isHidden = window.getComputedStyle(el).display === "none";
+      if (isHidden) {
+        this.slideDown(duration);
+      } else {
+        this.slideUp(duration);
+      }
     });
   }
   // Form Handling Methods
@@ -1273,6 +1201,8 @@ const $ = (selector, context = document) => new KAnime(selector, context);
 if (typeof window !== "undefined") {
   window.$ = $;
 }
+window.KAnime = KAnime;
+window.$ = $;
 export {
   KAnime as default
 };
