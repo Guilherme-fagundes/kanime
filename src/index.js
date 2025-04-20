@@ -344,20 +344,20 @@ class KAnime {
     return this.each(el => {
       if (window.getComputedStyle(el).display !== 'none') return;
 
-      // Primeiro, precisamos tornar o elemento visível para medir os valores reais
+      // Primeiro, torne o elemento visível para medir os valores reais
       el.style.removeProperty('display');
       let display = window.getComputedStyle(el).display;
       if (display === 'none') display = 'block';
       el.style.display = display;
 
-      // Salva os valores reais de padding
+      // Salve os valores reais de padding
       const style = window.getComputedStyle(el);
       const targetHeight = el.scrollHeight;
       const targetPaddingTop = style.paddingTop;
       const targetPaddingBottom = style.paddingBottom;
       const originalTransition = style.transition;
 
-      // Agora zera para animar do colapsado
+      // Zere para animar do colapsado
       el.style.transition = 'none';
       el.style.boxSizing = 'border-box';
       el.style.height = '0';
@@ -414,6 +414,107 @@ class KAnime {
       } else {
         this.slideUp();
       }
+    });
+  }
+
+  /**
+   * Applies a slide-up effect using CSS transitions, jQuery-like.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  slideUp(duration = this.duration) {
+    return this.each(el => {
+      if (window.getComputedStyle(el).display === 'none') return;
+
+      // Salva valores originais
+      const style = window.getComputedStyle(el);
+      const originalHeight = el.offsetHeight;
+      const originalPaddingTop = style.paddingTop;
+      const originalPaddingBottom = style.paddingBottom;
+      const originalOverflow = style.overflow;
+      const originalTransition = style.transition;
+
+      // Define para animar
+      el.style.transition = 'none';
+      el.style.boxSizing = 'border-box';
+      el.style.height = originalHeight + 'px';
+      el.style.paddingTop = originalPaddingTop;
+      el.style.paddingBottom = originalPaddingBottom;
+      el.style.overflow = 'hidden';
+
+      // Força reflow
+      void el.offsetHeight;
+
+      // Aplica transição
+      el.style.transition = `height ${duration}ms, padding ${duration}ms`;
+
+      requestAnimationFrame(() => {
+        el.style.height = '0';
+        el.style.paddingTop = '0';
+        el.style.paddingBottom = '0';
+
+        setTimeout(() => {
+          el.style.display = 'none';
+          el.style.removeProperty('height');
+          el.style.removeProperty('padding-top');
+          el.style.removeProperty('padding-bottom');
+          el.style.overflow = originalOverflow;
+          el.style.transition = originalTransition;
+          el.style.removeProperty('box-sizing');
+        }, duration);
+      });
+    });
+  }
+
+  /**
+   * Applies a slide-down effect using CSS transitions, jQuery-like.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  slideDown(duration = this.duration) {
+    return this.each(el => {
+      if (window.getComputedStyle(el).display !== 'none') return;
+
+      // Torna visível para medir
+      el.style.removeProperty('display');
+      let display = window.getComputedStyle(el).display;
+      if (display === 'none') display = 'block';
+      el.style.display = display;
+
+      // Salva valores reais
+      const style = window.getComputedStyle(el);
+      const targetHeight = el.scrollHeight;
+      const targetPaddingTop = style.paddingTop;
+      const targetPaddingBottom = style.paddingBottom;
+      const originalOverflow = style.overflow;
+      const originalTransition = style.transition;
+
+      // Zera para animar do colapsado
+      el.style.transition = 'none';
+      el.style.boxSizing = 'border-box';
+      el.style.height = '0';
+      el.style.paddingTop = '0';
+      el.style.paddingBottom = '0';
+      el.style.overflow = 'hidden';
+
+      // Força reflow
+      void el.offsetHeight;
+
+      // Aplica transição
+      el.style.transition = `height ${duration}ms, padding ${duration}ms`;
+
+      requestAnimationFrame(() => {
+        el.style.height = targetHeight + 'px';
+        el.style.paddingTop = targetPaddingTop;
+        el.style.paddingBottom = targetPaddingBottom;
+
+        setTimeout(() => {
+          el.style.removeProperty('height');
+          el.style.removeProperty('padding-top');
+          el.style.removeProperty('padding-bottom');
+          el.style.overflow = originalOverflow;
+          el.style.transition = originalTransition;
+          el.style.removeProperty('box-sizing');
+        }, duration);
+      });
     });
   }
 
