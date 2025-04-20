@@ -356,6 +356,83 @@ const _KAnime = class _KAnime {
       }
     });
   }
+  /**
+   * Applies a slide-up effect using CSS transitions, jQuery-like.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  slideUp(duration = this.duration) {
+    return this.each((el) => {
+      if (window.getComputedStyle(el).display === "none") return;
+      const style = window.getComputedStyle(el);
+      const originalHeight = el.offsetHeight;
+      const originalPaddingTop = style.paddingTop;
+      const originalPaddingBottom = style.paddingBottom;
+      const originalOverflow = style.overflow;
+      const originalTransition = style.transition;
+      el.style.transition = "none";
+      el.style.boxSizing = "border-box";
+      el.style.height = originalHeight + "px";
+      el.style.paddingTop = originalPaddingTop;
+      el.style.paddingBottom = originalPaddingBottom;
+      el.style.overflow = "hidden";
+      void el.offsetHeight;
+      el.style.transition = `height ${duration}ms, padding ${duration}ms`;
+      requestAnimationFrame(() => {
+        el.style.height = "0";
+        el.style.paddingTop = "0";
+        el.style.paddingBottom = "0";
+        setTimeout(() => {
+          el.style.display = "none";
+          el.style.removeProperty("height");
+          el.style.removeProperty("padding-top");
+          el.style.removeProperty("padding-bottom");
+          el.style.overflow = originalOverflow;
+          el.style.transition = originalTransition;
+          el.style.removeProperty("box-sizing");
+        }, duration);
+      });
+    });
+  }
+  /**
+   * Applies a slide-down effect using CSS transitions, jQuery-like.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  slideDown(duration = this.duration) {
+    return this.each((el) => {
+      if (window.getComputedStyle(el).display !== "none") return;
+      el.style.removeProperty("display");
+      let display = window.getComputedStyle(el).display;
+      if (display === "none") display = "block";
+      el.style.display = display;
+      const style = window.getComputedStyle(el);
+      const targetHeight = el.scrollHeight;
+      const targetPaddingTop = style.paddingTop;
+      const targetPaddingBottom = style.paddingBottom;
+      const originalOverflow = style.overflow;
+      const originalTransition = style.transition;
+      el.style.transition = "none";
+      el.style.boxSizing = "border-box";
+      el.style.height = "0";
+      el.style.paddingTop = "0";
+      el.style.paddingBottom = "0";
+      el.style.overflow = "hidden";
+      void el.offsetHeight;
+      el.style.transition = `height ${duration}ms, padding ${duration}ms`;
+      requestAnimationFrame(() => {
+        el.style.height = targetHeight + "px";
+        el.style.paddingTop = targetPaddingTop;
+        el.style.paddingBottom = targetPaddingBottom;
+        setTimeout(() => {
+          el.style.removeProperty("height");
+          el.style.removeProperty("padding-top");
+          el.style.removeProperty("padding-bottom");
+          el.style.overflow = originalOverflow;
+          el.style.transition = originalTransition;
+          el.style.removeProperty("box-sizing");
+        }, duration);
+      });
+    });
+  }
   // Form Handling Methods
   /**
    * Serializes form data into a string, including disabled fields.
