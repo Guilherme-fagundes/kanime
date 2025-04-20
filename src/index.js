@@ -51,13 +51,74 @@ class KAnime {
   }
 
   /**
-   * Adds an event to all selected elements.
-   * @param {string} event - Event name.
-   * @param {Function} handler - Function to be executed when the event occurs.
+   * Adds an event listener to the selected elements with support for delegation, multiple events (comma-separated), and custom context.
+   * @param {string} events - Event(s) to listen for (e.g., 'click, mouseover'). Multiple events can be separated by commas or spaces.
+   * @param {string|Function} selectorOrHandler - A CSS selector for delegation or the event handler function.
+   * @param {Function} [handler] - The event handler function (if delegation is used).
+   * @param {Object} [context=null] - Custom context for the handler (optional).
    * @returns {KAnime} - Returns the current instance for chaining.
    */
-  on(event, handler) {
-    return this.each(el => el.addEventListener(event, handler));
+  on(events, selectorOrHandler, handler = null, context = null) {
+    const isDelegation = typeof selectorOrHandler === 'string';
+    const eventList = events.split(/[,\s]+/); // Split by commas or spaces
+
+    return this.each(el => {
+      eventList.forEach(event => {
+        if (isDelegation) {
+          // Delegation: selectorOrHandler is a CSS selector
+          el.addEventListener(event, e => {
+            if (e.target.matches(selectorOrHandler)) {
+              handler.call(context || e.target, e);
+            }
+          });
+        } else {
+          // Direct binding: selectorOrHandler is the handler
+          el.addEventListener(event, e => {
+            selectorOrHandler.call(context || el, e);
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Adds mouse-specific event listeners to the selected elements.
+   * Supports events like 'mouseenter', 'mouseleave', 'mousemove', etc.
+   * @param {string} events - Mouse event(s) to listen for (e.g., 'mouseenter, mouseleave').
+   * @param {Function} handler - The event handler function.
+   * @param {Object} [context=null] - Custom context for the handler (optional).
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  onMouse(events, handler, context = null) {
+    const eventList = events.split(/[\s,]+/); // Split by commas or spaces
+
+    return this.each(el => {
+      eventList.forEach(event => {
+        el.addEventListener(event, e => {
+          handler.call(context || el, e);
+        });
+      });
+    });
+  }
+
+  /**
+   * Adds keyboard-specific event listeners to the selected elements.
+   * Supports events like 'keydown', 'keyup', 'keypress', etc.
+   * @param {string} events - Keyboard event(s) to listen for (e.g., 'keydown, keyup').
+   * @param {Function} handler - The event handler function.
+   * @param {Object} [context=null] - Custom context for the handler (optional).
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  onKey(events, handler, context = null) {
+    const eventList = events.split(/[\s,]+/); // Split by commas or spaces
+
+    return this.each(el => {
+      eventList.forEach(event => {
+        el.addEventListener(event, e => {
+          handler.call(context || el, e);
+        });
+      });
+    });
   }
 
   /**
@@ -266,74 +327,65 @@ class KAnime {
   }
 
   /**
-   * Applies a fade-in effect to the selected elements.
+   * Applies a fade-in effect using CSS transitions for better performance.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
   fadeIn() {
     return this.each(el => {
       el.style.opacity = 0;
       el.style.display = 'block';
+      el.style.transition = `opacity ${this.duration}ms ease-in-out`;
 
-      let last = +new Date();
-      const tick = () => {
-        el.style.opacity = +el.style.opacity + (new Date() - last) / this.duration;
-        last = +new Date();
-        if (+el.style.opacity < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          el.style.opacity = 1;
-        }
-      };
-      tick();
+      requestAnimationFrame(() => {
+        el.style.opacity = 1;
+      });
     });
   }
 
   /**
-   * Applies a fade-out effect to the selected elements.
+   * Applies a fade-out effect using CSS transitions for better performance.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
   fadeOut() {
     return this.each(el => {
       el.style.opacity = 1;
+      el.style.transition = `opacity ${this.duration}ms ease-in-out`;
 
-      let last = +new Date();
-      const tick = () => {
-        el.style.opacity = +el.style.opacity - (new Date() - last) / this.duration;
-        last = +new Date();
-        if (+el.style.opacity > 0) {
-          requestAnimationFrame(tick);
-        } else {
-          el.style.opacity = 0;
+      requestAnimationFrame(() => {
+        el.style.opacity = 0;
+
+        setTimeout(() => {
           el.style.display = 'none';
-        }
-      };
-      tick();
+        }, this.duration);
+      });
     });
   }
 
   /**
-   * Applies a slide-up effect to the selected elements.
+   * Applies a slide-up effect using CSS transitions for better performance.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
   slideUp() {
     return this.each(el => {
-      el.style.height = el.offsetHeight + 'px';
-      el.style.transition = `height ${this.duration}ms ease`;
-      el.offsetHeight; // reflow
-      el.style.overflow = 'hidden';
-      el.style.height = '0';
+      el.style.height = `${el.offsetHeight}px`;
+      el.style.transition = `height ${this.duration}ms ease-in-out`;
 
-      setTimeout(() => {
-        el.style.display = 'none';
-        el.style.removeProperty('height');
-        el.style.removeProperty('overflow');
-        el.style.removeProperty('transition');
-      }, this.duration);
+      requestAnimationFrame(() => {
+        el.style.height = '0';
+        el.style.overflow = 'hidden';
+
+        setTimeout(() => {
+          el.style.display = 'none';
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition');
+        }, this.duration);
+      });
     });
   }
 
   /**
-   * Applies a slide-down effect to the selected elements.
+   * Applies a slide-down effect using CSS transitions for better performance.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
   slideDown() {
@@ -342,15 +394,17 @@ class KAnime {
       const height = el.scrollHeight;
       el.style.height = '0';
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms ease`;
-      el.offsetHeight; // reflow
-      el.style.height = height + 'px';
+      el.style.transition = `height ${this.duration}ms ease-in-out`;
 
-      setTimeout(() => {
-        el.style.removeProperty('height');
-        el.style.removeProperty('overflow');
-        el.style.removeProperty('transition');
-      }, this.duration);
+      requestAnimationFrame(() => {
+        el.style.height = `${height}px`;
+
+        setTimeout(() => {
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition');
+        }, this.duration);
+      });
     });
   }
 
@@ -406,6 +460,77 @@ class KAnime {
     return this.elements.some(el => el.disabled);
   }
 
+  /**
+   * Appends content to each selected element.
+   * @param {string|HTMLElement} content - The content to append.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  append(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforeend', content);
+      } else if (content instanceof HTMLElement) {
+        el.appendChild(content);
+      }
+    });
+  }
+
+  /**
+   * Prepends content to each selected element.
+   * @param {string|HTMLElement} content - The content to prepend.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  prepend(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('afterbegin', content);
+      } else if (content instanceof HTMLElement) {
+        el.insertBefore(content, el.firstChild);
+      }
+    });
+  }
+
+  /**
+   * Inserts content before each selected element.
+   * @param {string|HTMLElement} content - The content to insert before.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  before(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforebegin', content);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.insertBefore(content, el);
+      }
+    });
+  }
+
+  /**
+   * Inserts content after each selected element.
+   * @param {string|HTMLElement} content - The content to insert after.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  after(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('afterend', content);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.insertBefore(content, el.nextSibling);
+      }
+    });
+  }
+
+  /**
+   * Removes all selected elements from the DOM.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  remove() {
+    return this.each(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
 
   /**
    * Attaches a submit event to the selected form.
@@ -610,6 +735,121 @@ class KAnime {
   }
 
   /**
+   * Clones the selected elements.
+   * @param {boolean} [deep=true] - Whether to perform a deep clone (including child nodes).
+   * @returns {KAnime} - Returns a new instance containing the cloned elements.
+   */
+  clone(deep = true) {
+    const clones = this.elements.map(el => el.cloneNode(deep));
+    return new KAnime(clones);
+  }
+
+  /**
+   * Wraps each selected element with the specified HTML structure.
+   * @param {string|HTMLElement} wrapper - The HTML structure or element to wrap around the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  wrap(wrapper) {
+    return this.each(el => {
+      const wrapElement = typeof wrapper === 'string'
+        ? document.createElement('div').insertAdjacentHTML('afterbegin', wrapper).firstElementChild
+        : wrapper.cloneNode(true);
+
+      el.parentNode.insertBefore(wrapElement, el);
+      wrapElement.appendChild(el);
+    });
+  }
+
+  /**
+   * Removes the parent of each selected element, keeping the elements in the DOM.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  unwrap() {
+    return this.each(el => {
+      const parent = el.parentNode;
+      if (parent && parent !== document.body) {
+        while (parent.firstChild) {
+          parent.parentNode.insertBefore(parent.firstChild, parent);
+        }
+        parent.parentNode.removeChild(parent);
+      }
+    });
+  }
+
+  /**
+   * Selects the parent of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the parent elements.
+   */
+  parent() {
+    const parents = this.elements.map(el => el.parentNode).filter((el, index, self) => el && self.indexOf(el) === index);
+    return new KAnime(parents);
+  }
+
+  /**
+   * Selects the children of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the child elements.
+   */
+  children() {
+    const children = this.elements.flatMap(el => Array.from(el.children));
+    return new KAnime(children);
+  }
+
+  /**
+   * Selects the siblings of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the sibling elements.
+   */
+  siblings() {
+    const siblings = this.elements.flatMap(el => Array.from(el.parentNode.children).filter(sibling => sibling !== el));
+    return new KAnime(siblings);
+  }
+
+  /**
+   * Finds descendants of each selected element that match the selector.
+   * @param {string} selector - A CSS selector to match descendants.
+   * @returns {KAnime} - Returns a new instance containing the matched elements.
+   */
+  find(selector) {
+    const descendants = this.elements.flatMap(el => Array.from(el.querySelectorAll(selector)));
+    return new KAnime(descendants);
+  }
+
+  /**
+   * Stores or retrieves data associated with the selected elements.
+   * @param {string} key - The key for the data.
+   * @param {any} [value] - The value to store (if omitted, retrieves the value).
+   * @returns {any|KAnime} - Returns the stored value or the current instance for chaining.
+   */
+  data(key, value) {
+    if (value === undefined) {
+      return this.elements[0]?.dataset[key];
+    }
+    return this.each(el => {
+      el.dataset[key] = value;
+    });
+  }
+
+  /**
+   * Toggles the visibility of the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  toggle() {
+    return this.each(el => {
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      el.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+
+  /**
+   * Stops the currently running animations on the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  stop() {
+    return this.each(el => {
+      el.style.transition = 'none';
+    });
+  }
+
+  /**
    * Checks if the browser supports modern APIs.
    * @returns {boolean} - Returns true if the browser is compatible.
    */
@@ -715,6 +955,16 @@ class KAnime {
   }
 
   /**
+   * Extends the target object with properties from source objects.
+   * @param {Object} target - The target object to extend.
+   * @param {...Object} sources - The source objects to copy properties from.
+   * @returns {Object} - Returns the extended target object.
+   */
+  static extend(target, ...sources) {
+    return Object.assign(target, ...sources);
+  }
+
+  /**
    * Internationalization (i18n) support.
    * @type {Object}
    */
@@ -751,6 +1001,350 @@ class KAnime {
       return this.translations[this.locale]?.[key] || key;
     }
   };
+
+  /**
+   * Removes elements from the DOM but keeps their data and events.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  detach() {
+    return this.each(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
+
+  /**
+   * Replaces each selected element with the provided content.
+   * @param {string|HTMLElement} content - The content to replace the selected elements with.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  replaceWith(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforebegin', content);
+        el.parentNode.removeChild(el);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.replaceChild(content, el);
+      }
+    });
+  }
+
+  /**
+   * Removes all child nodes of the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  empty() {
+    return this.each(el => {
+      while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+    });
+  }
+
+  /**
+   * Selects the closest ancestor of each selected element that matches the selector.
+   * @param {string} selector - A CSS selector to match the ancestor.
+   * @returns {KAnime} - Returns a new instance containing the matched ancestors.
+   */
+  closest(selector) {
+    const ancestors = this.elements.map(el => el.closest(selector)).filter(el => el);
+    return new KAnime(ancestors);
+  }
+
+  /**
+   * Selects the next sibling of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the next siblings.
+   */
+  next() {
+    const nextSiblings = this.elements.map(el => el.nextElementSibling).filter(el => el);
+    return new KAnime(nextSiblings);
+  }
+
+  /**
+   * Selects the previous sibling of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the previous siblings.
+   */
+  prev() {
+    const prevSiblings = this.elements.map(el => el.previousElementSibling).filter(el => el);
+    return new KAnime(prevSiblings);
+  }
+
+  /**
+   * Triggers an event on the selected elements.
+   * @param {string} event - The name of the event to trigger.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  trigger(event) {
+    return this.each(el => {
+      const evt = new Event(event, { bubbles: true, cancelable: true });
+      el.dispatchEvent(evt);
+    });
+  }
+
+  /**
+   * Binds handlers for mouseenter and mouseleave events.
+   * @param {Function} mouseEnterHandler - Handler for the mouseenter event.
+   * @param {Function} mouseLeaveHandler - Handler for the mouseleave event.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  hover(mouseEnterHandler, mouseLeaveHandler) {
+    return this.each(el => {
+      el.addEventListener('mouseenter', mouseEnterHandler);
+      el.addEventListener('mouseleave', mouseLeaveHandler);
+    });
+  }
+
+  /**
+   * Toggles between fadeIn and fadeOut based on the element's visibility.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  fadeToggle() {
+    return this.each(el => {
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      if (isHidden) {
+        this.fadeIn();
+      } else {
+        this.fadeOut();
+      }
+    });
+  }
+
+  /**
+   * Toggles between slideUp and slideDown based on the element's visibility.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  slideToggle() {
+    return this.each(el => {
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      if (isHidden) {
+        this.slideDown();
+      } else {
+        this.slideUp();
+      }
+    });
+  }
+
+  /**
+   * Loads and executes a script from a remote URL.
+   * @param {string} url - The URL of the script to load.
+   * @returns {Promise} - Resolves when the script is loaded.
+   */
+  static getScript(url) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = url;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Checks if any of the selected elements match the selector.
+   * @param {string} selector - A CSS selector to match.
+   * @returns {boolean} - Returns true if any element matches the selector.
+   */
+  is(selector) {
+    return this.elements.some(el => el.matches(selector));
+  }
+
+  /**
+   * Plays the selected video or audio elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  play() {
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.play().catch(err => console.error('Error playing media:', err));
+      }
+    });
+  }
+
+  /**
+   * Pauses the selected video or audio elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  pause() {
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.pause();
+      }
+    });
+  }
+
+  /**
+   * Sets or gets the current playback time of the selected video or audio elements.
+   * @param {number} [time] - The time to set in seconds (optional).
+   * @returns {number|KAnime} - Returns the current time or the instance for chaining.
+   */
+  currentTime(time) {
+    if (time === undefined) {
+      return this.elements[0] instanceof HTMLMediaElement ? this.elements[0].currentTime : null;
+    }
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.currentTime = time;
+      }
+    });
+  }
+
+  /**
+   * Sets or gets the volume of the selected video or audio elements.
+   * @param {number} [volume] - The volume level to set (0.0 to 1.0).
+   * @returns {number|KAnime} - Returns the current volume or the instance for chaining.
+   */
+  volume(volume) {
+    if (volume === undefined) {
+      return this.elements[0] instanceof HTMLMediaElement ? this.elements[0].volume : null;
+    }
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.volume = Math.min(1, Math.max(0, volume));
+      }
+    });
+  }
+
+  /**
+   * Mutes or unmutes the selected video or audio elements.
+   * @param {boolean} [mute=true] - Whether to mute (true) or unmute (false).
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  mute(mute = true) {
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.muted = mute;
+      }
+    });
+  }
+
+  /**
+   * Checks if the selected video or audio elements are currently playing.
+   * @returns {boolean} - Returns true if any element is playing.
+   */
+  isPlaying() {
+    return this.elements.some(el => el instanceof HTMLMediaElement && !el.paused && !el.ended);
+  }
+
+  /**
+   * Loads a new source into the selected video or audio elements.
+   * @param {string} src - The source URL to load.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  loadSource(src) {
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.src = src;
+        el.load();
+      }
+    });
+  }
+
+  /**
+   * Sets or gets the playback rate of the selected video or audio elements.
+   * @param {number} [rate] - The playback rate to set (e.g., 1.0 for normal speed).
+   * @returns {number|KAnime} - Returns the current playback rate or the instance for chaining.
+   */
+  playbackRate(rate) {
+    if (rate === undefined) {
+      return this.elements[0] instanceof HTMLMediaElement ? this.elements[0].playbackRate : null;
+    }
+    return this.each(el => {
+      if (el instanceof HTMLMediaElement) {
+        el.playbackRate = rate;
+      }
+    });
+  }
+
+  /**
+   * Gets or sets the width of the selected elements.
+   * @param {number} [value] - The width to set in pixels (optional).
+   * @returns {number|KAnime} - Returns the current width or the instance for chaining.
+   */
+  width(value) {
+    if (value === undefined) {
+      return this.elements[0]?.offsetWidth || 0;
+    }
+    return this.each(el => {
+      el.style.width = `${value}px`;
+    });
+  }
+
+  /**
+   * Gets or sets the height of the selected elements.
+   * @param {number} [value] - The height to set in pixels (optional).
+   * @returns {number|KAnime} - Returns the current height or the instance for chaining.
+   */
+  height(value) {
+    if (value === undefined) {
+      return this.elements[0]?.offsetHeight || 0;
+    }
+    return this.each(el => {
+      el.style.height = `${value}px`;
+    });
+  }
+
+  /**
+   * Gets the width of the document.
+   * @returns {number} - Returns the width of the document in pixels.
+   */
+  static documentWidth() {
+    return Math.max(
+      document.documentElement.clientWidth,
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+      document.body.offsetWidth,
+      document.documentElement.offsetWidth
+    );
+  }
+
+  /**
+   * Gets the height of the document.
+   * @returns {number} - Returns the height of the document in pixels.
+   */
+  static documentHeight() {
+    return Math.max(
+      document.documentElement.clientHeight,
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight
+    );
+  }
+
+  /**
+   * Gets or sets the scroll position of the selected elements.
+   * @param {number} [x] - The horizontal scroll position to set (optional).
+   * @param {number} [y] - The vertical scroll position to set (optional).
+   * @returns {Object|KAnime} - Returns the current scroll position or the instance for chaining.
+   */
+  scroll(x, y) {
+    if (x === undefined && y === undefined) {
+      return {
+        x: this.elements[0]?.scrollLeft || 0,
+        y: this.elements[0]?.scrollTop || 0
+      };
+    }
+    return this.each(el => {
+      if (x !== undefined) el.scrollLeft = x;
+      if (y !== undefined) el.scrollTop = y;
+    });
+  }
+
+  /**
+   * Gets the offset of the first selected element relative to the document.
+   * @returns {Object} - Returns an object with `top` and `left` properties.
+   */
+  offset() {
+    const el = this.elements[0];
+    if (!el) return { top: 0, left: 0 };
+
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top + window.pageYOffset,
+      left: rect.left + window.pageXOffset
+    };
+  }
 }
 
 // Define a global function for simplified selection
