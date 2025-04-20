@@ -1,8 +1,5 @@
 /**
- * KAnime.js - A lightweight library for DOM manipulation, animations, events, and HTTP requests.
- * 
- * @class KAnime
- * @param {string} selector - A CSS selector to select DOM elements.
+ * KAnime.js - A lightweight library for DOM manipulation, animations, events, forms, and media control.
  */
 class KAnime {
   /**
@@ -10,7 +7,7 @@ class KAnime {
    * @param {string|HTMLElement|NodeList} selector - CSS selector, HTML element, or NodeList.
    */
   constructor(selector) {
-    if (!KAnime.isModernBrowser()) {
+    if (!KAnime.kIsModernBrowser()) {
       throw new Error('Your browser is incompatible with the KAnime library. Please update to a recent version.');
     }
 
@@ -24,32 +21,38 @@ class KAnime {
       throw new Error('Invalid selector. Must be a string, HTMLElement, or NodeList.');
     }
 
-    this.duration = 500; // Default duration
+    this.kDuration = 500;
   }
 
   /**
-   * Iterates over the selected elements and executes a callback.
-   * @param {Function} callback - Function to be executed for each element.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Executes a callback for each selected element.
+   * @param {Function} callback
+   * @returns {KAnime}
    */
-  each(callback) {
+  kForEach(callback) {
     this.elements.forEach(callback);
     return this;
   }
 
   /**
-   * Sets the default duration for animations.
-   * @param {number} ms - Duration in milliseconds.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Sets the default animation duration.
+   * @param {number} ms
+   * @returns {KAnime}
    */
-  setDuration(ms) {
-    this.duration = ms;
+  kSetDuration(ms) {
+    this.kDuration = ms;
     return this;
   }
 
-  // DOM Manipulation Methods
-  append(content) {
-    return this.each(el => {
+  // DOM Manipulation
+
+  /**
+   * Adds content to the end of each selected element.
+   * @param {string|HTMLElement} content
+   * @returns {KAnime}
+   */
+  kAdd(content) {
+    return this.kForEach(el => {
       if (typeof content === 'string') {
         el.insertAdjacentHTML('beforeend', content);
       } else if (content instanceof HTMLElement) {
@@ -58,8 +61,13 @@ class KAnime {
     });
   }
 
-  prepend(content) {
-    return this.each(el => {
+  /**
+   * Adds content to the start of each selected element.
+   * @param {string|HTMLElement} content
+   * @returns {KAnime}
+   */
+  kAddFirst(content) {
+    return this.kForEach(el => {
       if (typeof content === 'string') {
         el.insertAdjacentHTML('afterbegin', content);
       } else if (content instanceof HTMLElement) {
@@ -68,8 +76,13 @@ class KAnime {
     });
   }
 
-  before(content) {
-    return this.each(el => {
+  /**
+   * Inserts content before each selected element.
+   * @param {string|HTMLElement} content
+   * @returns {KAnime}
+   */
+  kInsertBefore(content) {
+    return this.kForEach(el => {
       if (typeof content === 'string') {
         el.insertAdjacentHTML('beforebegin', content);
       } else if (content instanceof HTMLElement) {
@@ -78,8 +91,13 @@ class KAnime {
     });
   }
 
-  after(content) {
-    return this.each(el => {
+  /**
+   * Inserts content after each selected element.
+   * @param {string|HTMLElement} content
+   * @returns {KAnime}
+   */
+  kInsertAfter(content) {
+    return this.kForEach(el => {
       if (typeof content === 'string') {
         el.insertAdjacentHTML('afterend', content);
       } else if (content instanceof HTMLElement) {
@@ -88,21 +106,35 @@ class KAnime {
     });
   }
 
-  remove() {
-    return this.each(el => {
+  /**
+   * Removes all selected elements from the DOM.
+   * @returns {KAnime}
+   */
+  kRemove() {
+    return this.kForEach(el => {
       if (el.parentNode) {
         el.parentNode.removeChild(el);
       }
     });
   }
 
-  clone(deep = true) {
+  /**
+   * Clones the selected elements.
+   * @param {boolean} deep
+   * @returns {KAnime}
+   */
+  kClone(deep = true) {
     const clones = this.elements.map(el => el.cloneNode(deep));
     return new KAnime(clones);
   }
 
-  wrap(wrapper) {
-    return this.each(el => {
+  /**
+   * Wraps each selected element with the specified HTML structure.
+   * @param {string|HTMLElement} wrapper
+   * @returns {KAnime}
+   */
+  kWrapWith(wrapper) {
+    return this.kForEach(el => {
       const wrapElement = typeof wrapper === 'string'
         ? document.createElement('div').insertAdjacentHTML('afterbegin', wrapper).firstElementChild
         : wrapper.cloneNode(true);
@@ -112,8 +144,12 @@ class KAnime {
     });
   }
 
-  unwrap() {
-    return this.each(el => {
+  /**
+   * Removes the parent of each selected element, keeping the elements in the DOM.
+   * @returns {KAnime}
+   */
+  kUnwrap() {
+    return this.kForEach(el => {
       const parent = el.parentNode;
       if (parent && parent !== document.body) {
         while (parent.firstChild) {
@@ -124,34 +160,41 @@ class KAnime {
     });
   }
 
-  // Event Handling Methods
-  on(events, selectorOrHandler, handler = null, context = null) {
-    const isDelegation = typeof selectorOrHandler === 'string';
-    const eventList = events.split(/[,\s]+/);
+  // Event Handling
 
-    return this.each(el => {
+  /**
+   * Adds event listeners to the selected elements.
+   * @param {string} events
+   * @param {Function} handler
+   * @returns {KAnime}
+   */
+  kListen(events, handler) {
+    const eventList = events.split(/[,\s]+/);
+    return this.kForEach(el => {
       eventList.forEach(event => {
-        if (isDelegation) {
-          el.addEventListener(event, e => {
-            if (e.target.matches(selectorOrHandler)) {
-              handler.call(context || e.target, e);
-            }
-          });
-        } else {
-          el.addEventListener(event, e => {
-            selectorOrHandler.call(context || el, e);
-          });
-        }
+        el.addEventListener(event, e => handler.call(el, e));
       });
     });
   }
 
-  off(event, handler) {
-    return this.each(el => el.removeEventListener(event, handler));
+  /**
+   * Removes event listeners from the selected elements.
+   * @param {string} event
+   * @param {Function} handler
+   * @returns {KAnime}
+   */
+  kRemoveListener(event, handler) {
+    return this.kForEach(el => el.removeEventListener(event, handler));
   }
 
-  one(event, handler) {
-    return this.each(el => {
+  /**
+   * Adds a one-time event listener to the selected elements.
+   * @param {string} event
+   * @param {Function} handler
+   * @returns {KAnime}
+   */
+  kOnce(event, handler) {
+    return this.kForEach(el => {
       const onceHandler = (e) => {
         handler(e);
         el.removeEventListener(event, onceHandler);
@@ -160,88 +203,120 @@ class KAnime {
     });
   }
 
-  trigger(event) {
-    return this.each(el => {
+  /**
+   * Triggers an event on the selected elements.
+   * @param {string} event
+   * @returns {KAnime}
+   */
+  kDispatch(event) {
+    return this.kForEach(el => {
       const evt = new Event(event, { bubbles: true, cancelable: true });
       el.dispatchEvent(evt);
     });
   }
 
-  hover(mouseEnterHandler, mouseLeaveHandler) {
-    return this.each(el => {
+  /**
+   * Adds mouseenter and mouseleave event listeners.
+   * @param {Function} mouseEnterHandler
+   * @param {Function} mouseLeaveHandler
+   * @returns {KAnime}
+   */
+  kHover(mouseEnterHandler, mouseLeaveHandler) {
+    return this.kForEach(el => {
       el.addEventListener('mouseenter', mouseEnterHandler);
       el.addEventListener('mouseleave', mouseLeaveHandler);
     });
   }
 
-  // Animation Methods
-  fadeShow() {
-    return this.each(el => {
+  // Animation
+
+  /**
+   * Shows the elements with a fade-in animation.
+   * @returns {KAnime}
+   */
+  kShowFade() {
+    return this.kForEach(el => {
       if (window.getComputedStyle(el).display === 'none') {
         el.style.display = 'block';
         el.style.opacity = 0;
       }
-      el.style.transition = `opacity ${this.duration}ms ease-in-out`;
-
+      el.style.transition = `opacity ${this.kDuration}ms ease-in-out`;
       void el.offsetWidth;
-
       requestAnimationFrame(() => {
         el.style.opacity = 1;
       });
     });
   }
 
-  fadeHide() {
-    return this.each(el => {
+  /**
+   * Hides the elements with a fade-out animation.
+   * @returns {KAnime}
+   */
+  kHideFade() {
+    return this.kForEach(el => {
       el.style.opacity = 1;
-      el.style.transition = `opacity ${this.duration}ms ease-in-out`;
-
+      el.style.transition = `opacity ${this.kDuration}ms ease-in-out`;
       void el.offsetWidth;
-
       requestAnimationFrame(() => {
         el.style.opacity = 0;
-
         setTimeout(() => {
           el.style.display = 'none';
-        }, this.duration);
+        }, this.kDuration);
       });
     });
   }
 
-  fadeShowHide() {
-    return this.each(el => {
+  /**
+   * Toggles fade-in/fade-out based on visibility.
+   * @returns {KAnime}
+   */
+  kToggleFade() {
+    return this.kForEach(el => {
       const isHidden = window.getComputedStyle(el).display === 'none';
       if (isHidden) {
-        this.fadeShow();
+        this.kShowFade();
       } else {
-        this.fadeHide();
+        this.kHideFade();
       }
     });
   }
 
-  // Media Methods
-  play() {
-    return this.each(el => {
+  // Media
+
+  /**
+   * Plays the selected <video> or <audio> elements.
+   * @returns {KAnime}
+   */
+  kPlayMedia() {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         el.play();
       } else {
-        throw new Error('The play method can only be used on <video> or <audio> elements.');
+        throw new Error('kPlayMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  pause() {
-    return this.each(el => {
+  /**
+   * Pauses the selected <video> or <audio> elements.
+   * @returns {KAnime}
+   */
+  kPauseMedia() {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         el.pause();
       } else {
-        throw new Error('The pause method can only be used on <video> or <audio> elements.');
+        throw new Error('kPauseMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  togglePlay() {
-    return this.each(el => {
+  /**
+   * Toggles play/pause for <video> or <audio> elements.
+   * @returns {KAnime}
+   */
+  kToggleMedia() {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         if (el.paused) {
           el.play();
@@ -249,72 +324,103 @@ class KAnime {
           el.pause();
         }
       } else {
-        throw new Error('The togglePlay method can only be used on <video> or <audio> elements.');
+        throw new Error('kToggleMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  setVolume(value) {
-    return this.each(el => {
+  /**
+   * Sets the volume for <video> or <audio> elements.
+   * @param {number} value
+   * @returns {KAnime}
+   */
+  kSetVolume(value) {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
-        el.volume = Math.min(Math.max(value, 0), 1); // Ensure volume is between 0 and 1
+        el.volume = Math.min(Math.max(value, 0), 1);
       } else {
-        throw new Error('The setVolume method can only be used on <video> or <audio> elements.');
+        throw new Error('kSetVolume can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  mute() {
-    return this.each(el => {
+  /**
+   * Mutes <video> or <audio> elements.
+   * @returns {KAnime}
+   */
+  kMuteMedia() {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         el.muted = true;
       } else {
-        throw new Error('The mute method can only be used on <video> or <audio> elements.');
+        throw new Error('kMuteMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  unmute() {
-    return this.each(el => {
+  /**
+   * Unmutes <video> or <audio> elements.
+   * @returns {KAnime}
+   */
+  kUnmuteMedia() {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         el.muted = false;
       } else {
-        throw new Error('The unmute method can only be used on <video> or <audio> elements.');
+        throw new Error('kUnmuteMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  seekTo(time) {
-    return this.each(el => {
+  /**
+   * Seeks to a specific time in <video> or <audio> elements.
+   * @param {number} time
+   * @returns {KAnime}
+   */
+  kSeekMedia(time) {
+    return this.kForEach(el => {
       if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
         el.currentTime = Math.max(0, Math.min(time, el.duration || 0));
       } else {
-        throw new Error('The seekTo method can only be used on <video> or <audio> elements.');
+        throw new Error('kSeekMedia can only be used on <video> or <audio> elements.');
       }
     });
   }
 
-  getCurrentTime() {
+  /**
+   * Gets the current playback time of the first <video> or <audio> element.
+   * @returns {number}
+   */
+  kGetMediaTime() {
     if (this.elements[0].tagName === 'VIDEO' || this.elements[0].tagName === 'AUDIO') {
       return this.elements[0].currentTime;
     } else {
-      throw new Error('The getCurrentTime method can only be used on <video> or <audio> elements.');
+      throw new Error('kGetMediaTime can only be used on <video> or <audio> elements.');
     }
   }
 
-  getDuration() {
+  /**
+   * Gets the duration of the first <video> or <audio> element.
+   * @returns {number}
+   */
+  kGetMediaDuration() {
     if (this.elements[0].tagName === 'VIDEO' || this.elements[0].tagName === 'AUDIO') {
       return this.elements[0].duration;
     } else {
-      throw new Error('The getDuration method can only be used on <video> or <audio> elements.');
+      throw new Error('kGetMediaDuration can only be used on <video> or <audio> elements.');
     }
   }
 
-  // Form Handling Methods
-  serialize() {
+  // Form
+
+  /**
+   * Serializes form data into a query string.
+   * @returns {string}
+   */
+  kFormData() {
     const form = this.elements[0];
     if (!(form instanceof HTMLFormElement)) {
-      throw new Error('serialize can only be used on form elements.');
+      throw new Error('kFormData can only be used on form elements.');
     }
 
     const formData = new FormData(form);
@@ -333,10 +439,14 @@ class KAnime {
     return params.toString();
   }
 
-  serializeArray() {
+  /**
+   * Serializes form data into an array of objects.
+   * @returns {Array}
+   */
+  kFormArray() {
     const form = this.elements[0];
     if (!(form instanceof HTMLFormElement)) {
-      throw new Error('serializeArray can only be used on form elements.');
+      throw new Error('kFormArray can only be used on form elements.');
     }
 
     const serializedArray = [];
@@ -354,22 +464,36 @@ class KAnime {
     return serializedArray;
   }
 
-  val(value) {
+  /**
+   * Gets or sets the value of form fields.
+   * @param {any} value
+   * @returns {any|KAnime}
+   */
+  kValue(value) {
     if (value === undefined) {
       if (this.elements[0].type === 'checkbox' || this.elements[0].type === 'radio') {
         return this.elements.filter(el => el.checked).map(el => el.value);
       }
       return this.elements[0].value;
     }
-    return this.each(el => el.value = value);
+    return this.kForEach(el => el.value = value);
   }
 
-  param() {
-    return this.serialize();
+  /**
+   * Alias for kFormData.
+   * @returns {string}
+   */
+  kFormParams() {
+    return this.kFormData();
   }
 
-  submit(callback) {
-    return this.each(el => {
+  /**
+   * Adds a submit event handler to forms.
+   * @param {Function} callback
+   * @returns {KAnime}
+   */
+  kOnFormSubmit(callback) {
+    return this.kForEach(el => {
       if (el instanceof HTMLFormElement) {
         el.addEventListener('submit', event => {
           event.preventDefault();
@@ -378,15 +502,20 @@ class KAnime {
           callback(data, el);
         });
       } else {
-        throw new Error('The submit method can only be used on form elements.');
+        throw new Error('kOnFormSubmit can only be used on form elements.');
       }
     });
   }
 
-  async submitRequest(options = {}) {
+  /**
+   * Submits a form via HTTP request.
+   * @param {Object} options
+   * @returns {Promise}
+   */
+  async kSubmitForm(options = {}) {
     const form = this.elements[0];
     if (!(form instanceof HTMLFormElement)) {
-      throw new Error('submitRequest can only be used on form elements.');
+      throw new Error('kSubmitForm can only be used on form elements.');
     }
 
     const formData = new FormData(form);
@@ -434,51 +563,89 @@ class KAnime {
     }
   }
 
-  // Attribute and Style Methods
-  attr(attribute, value) {
+  // Attribute and Style
+
+  /**
+   * Gets or sets an attribute for the selected elements.
+   * @param {string} attribute
+   * @param {any} value
+   * @returns {any|KAnime}
+   */
+  kAttr(attribute, value) {
     if (value === undefined) {
       return this.elements[0].getAttribute(attribute);
     }
-    return this.each(el => el.setAttribute(attribute, value));
+    return this.kForEach(el => el.setAttribute(attribute, value));
   }
 
-  css(property, value) {
+  /**
+   * Gets or sets a CSS property for the selected elements.
+   * @param {string} property
+   * @param {any} value
+   * @returns {any|KAnime}
+   */
+  kStyle(property, value) {
     if (value === undefined) {
       return window.getComputedStyle(this.elements[0])[property];
     }
-    return this.each(el => el.style[property] = value);
+    return this.kForEach(el => el.style[property] = value);
   }
 
-  addClass(className) {
-    return this.each(el => el.classList.add(className));
+  /**
+   * Adds a CSS class to the selected elements.
+   * @param {string} className
+   * @returns {KAnime}
+   */
+  kAddClass(className) {
+    return this.kForEach(el => el.classList.add(className));
   }
 
-  removeClass(className) {
-    return this.each(el => el.classList.remove(className));
+  /**
+   * Removes a CSS class from the selected elements.
+   * @param {string} className
+   * @returns {KAnime}
+   */
+  kRemoveClass(className) {
+    return this.kForEach(el => el.classList.remove(className));
   }
 
-  toggleClass(className) {
-    return this.each(el => el.classList.toggle(className));
+  /**
+   * Toggles a CSS class on the selected elements.
+   * @param {string} className
+   * @returns {KAnime}
+   */
+  kToggleClass(className) {
+    return this.kForEach(el => el.classList.toggle(className));
   }
 
-  // Utility Methods
-  static isModernBrowser() {
+  // Utility
+
+  /**
+   * Checks if the browser supports required features.
+   * @returns {boolean}
+   */
+  static kIsModernBrowser() {
     return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
   }
 
-  static select(selector) {
+  /**
+   * Creates a new KAnime instance for the given selector.
+   * @param {string} selector
+   * @returns {KAnime}
+   */
+  static kSelect(selector) {
     return new KAnime(selector);
   }
 }
 
-// Define a global function for simplified selection
-const $ = (selector, context = document) => new KAnime(selector, context);
+// Global shortcut
+const k = (selector, context = document) => new KAnime(selector, context);
 
 if (typeof window !== 'undefined') {
-  window.$ = $;
+  window.k = k;
 }
 
 window.KAnime = KAnime;
-window.$ = $;
+window.k = k;
 
 export default KAnime;
