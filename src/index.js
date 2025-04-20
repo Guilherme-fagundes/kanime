@@ -255,9 +255,14 @@ class KAnime {
    */
   fadeIn() {
     return this.each(el => {
-      el.style.opacity = 0;
-      el.style.display = 'block';
+      if (window.getComputedStyle(el).display === 'none') {
+        el.style.display = 'block';
+        el.style.opacity = 0;
+      }
       el.style.transition = `opacity ${this.duration}ms ease-in-out`;
+
+      // Ensure reflow to apply transition
+      void el.offsetWidth;
 
       requestAnimationFrame(() => {
         el.style.opacity = 1;
@@ -273,6 +278,9 @@ class KAnime {
     return this.each(el => {
       el.style.opacity = 1;
       el.style.transition = `opacity ${this.duration}ms ease-in-out`;
+
+      // Ensure reflow to apply transition
+      void el.offsetWidth;
 
       requestAnimationFrame(() => {
         el.style.opacity = 0;
@@ -290,16 +298,27 @@ class KAnime {
    */
   slideUp() {
     return this.each(el => {
+      if (window.getComputedStyle(el).display === 'none') {
+        return;
+      }
+      const style = window.getComputedStyle(el);
       el.style.height = `${el.offsetHeight}px`;
-      el.style.transition = `height ${this.duration}ms ease-in-out`;
+      el.style.overflow = 'hidden';
+      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out`;
+
+      // Ensure reflow to apply transition
+      void el.offsetWidth;
 
       requestAnimationFrame(() => {
         el.style.height = '0';
-        el.style.overflow = 'hidden';
+        el.style.paddingTop = '0';
+        el.style.paddingBottom = '0';
 
         setTimeout(() => {
           el.style.display = 'none';
           el.style.removeProperty('height');
+          el.style.removeProperty('padding-top');
+          el.style.removeProperty('padding-bottom');
           el.style.removeProperty('overflow');
           el.style.removeProperty('transition');
         }, this.duration);
@@ -313,11 +332,18 @@ class KAnime {
    */
   slideDown() {
     return this.each(el => {
+      if (window.getComputedStyle(el).display !== 'none') {
+        return;
+      }
       el.style.display = 'block';
+      const style = window.getComputedStyle(el);
       const height = el.scrollHeight;
       el.style.height = '0';
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms ease-in-out`;
+      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out`;
+
+      // Ensure reflow to apply transition
+      void el.offsetWidth;
 
       requestAnimationFrame(() => {
         el.style.height = `${height}px`;
