@@ -87,41 +87,72 @@ class KAnime {
   }
 
   /**
-   * Serializes form data into a string in the key=value format.
-   * @returns {string} - Serialized form data.
+   * Serializes form data into a string, including disabled fields.
+   * @returns {string} - Serialized form data in key=value format.
    */
   serialize() {
-    const formData = new FormData(this.elements[0]);
-    const serialized = [];
-    formData.forEach((value, key) => {
-      serialized.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    const form = this.elements[0];
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('serialize can only be used on form elements.');
+    }
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+
+    // Include disabled fields
+    Array.from(form.elements).forEach(el => {
+      if (!el.disabled && el.name) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) params.append(el.name, el.value);
+        } else {
+          params.append(el.name, el.value);
+        }
+      }
     });
-    return serialized.join('&');
+
+    return params.toString();
   }
 
   /**
-   * Serializes form data into an array of objects.
-   * @returns {Array} - Array of objects with form data.
+   * Serializes form data into an array of objects, including disabled fields.
+   * @returns {Array} - Array of objects with name and value pairs.
    */
   serializeArray() {
-    const formData = new FormData(this.elements[0]);
+    const form = this.elements[0];
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('serializeArray can only be used on form elements.');
+    }
+
     const serializedArray = [];
-    formData.forEach((value, key) => {
-      serializedArray.push({ name: key, value: value });
+
+    // Include disabled fields
+    Array.from(form.elements).forEach(el => {
+      if (!el.disabled && el.name) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) serializedArray.push({ name: el.name, value: el.value });
+        } else {
+          serializedArray.push({ name: el.name, value: el.value });
+        }
+      }
     });
+
     return serializedArray;
   }
 
   /**
-   * Sets or returns the value of a form field.
-   * @param {string} [value] - Value to be set (optional).
-   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   * Gets or sets the value of form fields.
+   * @param {string} [value] - Value to set (optional).
+   * @returns {string|Array|KAnime} - Returns the current value(s) or the instance for chaining.
    */
   val(value) {
     if (value === undefined) {
-      return this.elements[0].value; // Returns the value
+      if (this.elements[0].type === 'checkbox' || this.elements[0].type === 'radio') {
+        // Return values of checked checkboxes or radio buttons
+        return this.elements.filter(el => el.checked).map(el => el.value);
+      }
+      return this.elements[0].value; // Return value of the first element
     }
-    return this.each(el => el.value = value); // Sets the value
+    return this.each(el => el.value = value); // Set value for all elements
   }
 
   /**
@@ -375,12 +406,88 @@ class KAnime {
     return this.elements.some(el => el.disabled);
   }
 
+
   /**
-   * Submits the form of the selected elements.
+   * Attaches a submit event to the selected form.
+   * @param {Function} callback - A callback function to handle form data and submission.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
-  submit() {
-    return this.each(el => el.submit());
+  submit(callback) {
+    return this.each(el => {
+      if (el instanceof HTMLFormElement) {
+        el.addEventListener('submit', event => {
+          event.preventDefault(); // Prevent default form submission
+          const formData = new FormData(el);
+          const data = Object.fromEntries(formData.entries()); // Convert FormData to an object
+          callback(data, el); // Pass the data and form element to the callback
+        });
+      } else {
+        throw new Error('The submit method can only be used on form elements.');
+      }
+    });
+  }
+
+  /**
+   * Submits a form via AJAX with support for file uploads.
+   * @param {Object} [options] - Options for the AJAX request.
+   * @param {string} [options.method='POST'] - HTTP method (e.g., 'POST', 'GET').
+   * @param {Object} [options.headers={}] - Additional headers for the request.
+   * @param {number} [options.timeout=0] - Timeout in milliseconds (0 for no timeout).
+   * @param {boolean} [options.json=false] - Whether to send the data as JSON (files will be ignored if true).
+   * @returns {Promise} - Resolves with the server response or rejects with an error.
+   */
+  async ajaxSubmit(options = {}) {
+    const form = this.elements[0];
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('ajaxSubmit can only be used on form elements.');
+    }
+
+    const formData = new FormData(form);
+    const method = options.method || 'POST';
+    const headers = {
+      ...options.headers
+    };
+
+    let body;
+    if (options.json) {
+      // Convert FormData to JSON (files will be ignored)
+      body = JSON.stringify(Object.fromEntries(formData.entries()));
+      headers['Content-Type'] = 'application/json';
+    } else {
+      body = method.toUpperCase() === 'GET' ? null : formData;
+    }
+
+    const controller = new AbortController();
+    const timeout = options.timeout || 0;
+
+    if (timeout > 0) {
+      setTimeout(() => controller.abort(), timeout);
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method,
+        headers,
+        body,
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('Content-Type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+
+      return await response.text();
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -449,28 +556,57 @@ class KAnime {
   }
 
   /**
-   * Performs an AJAX request.
+   * Performs an AJAX request with enhanced features.
    * @param {Object} options - Request options.
    * @param {string} options.url - Request URL.
-   * @param {string} [options.method='GET'] - HTTP method.
-   * @param {Object} [options.data=null] - Data to be sent.
+   * @param {string} [options.method='GET'] - HTTP method (e.g., 'GET', 'POST').
+   * @param {Object} [options.data=null] - Data to be sent (JSON or FormData).
    * @param {Object} [options.headers={}] - Request headers.
+   * @param {number} [options.timeout=0] - Timeout in milliseconds (0 for no timeout).
    * @returns {Promise} - Returns a promise with the response.
    */
-  ajax({ url, method = 'GET', data = null, headers = {} }) {
-    return fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers
-      },
-      body: data ? JSON.stringify(data) : null
-    }).then(response => {
+  async ajax({ url, method = 'GET', data = null, headers = {}, timeout = 0 }) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    if (timeout > 0) {
+      setTimeout(() => controller.abort(), timeout);
+    }
+
+    const isFormData = data instanceof FormData;
+    const requestHeaders = {
+      ...headers,
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+    };
+
+    const body = isFormData ? data : data ? JSON.stringify(data) : null;
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: requestHeaders,
+        body: method.toUpperCase() === 'GET' ? null : body,
+        signal
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      return response.json();
-    });
+
+      const contentType = response.headers.get('Content-Type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else if (contentType && contentType.includes('text/')) {
+        return await response.text();
+      } else {
+        return await response.blob();
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      }
+      throw error;
+    }
   }
 
   /**
