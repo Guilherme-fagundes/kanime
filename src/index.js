@@ -303,15 +303,16 @@ class KAnime {
       const originalHeight = el.offsetHeight;
       const originalPaddingTop = style.paddingTop;
       const originalPaddingBottom = style.paddingBottom;
-      const originalDisplay = style.display;
+      const originalTransition = style.transition;
+      el.style.transition = 'none';
       el.style.boxSizing = 'border-box';
       el.style.height = originalHeight + 'px';
       el.style.paddingTop = originalPaddingTop;
       el.style.paddingBottom = originalPaddingBottom;
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
       // Força reflow
       void el.offsetHeight;
+      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
       requestAnimationFrame(() => {
         el.style.height = '0';
         el.style.paddingTop = '0';
@@ -322,7 +323,7 @@ class KAnime {
           el.style.removeProperty('padding-top');
           el.style.removeProperty('padding-bottom');
           el.style.removeProperty('overflow');
-          el.style.removeProperty('transition');
+          el.style.transition = originalTransition;
           el.style.removeProperty('box-sizing');
         }, this.duration);
       });
@@ -344,14 +345,16 @@ class KAnime {
       const targetHeight = el.scrollHeight;
       const targetPaddingTop = style.paddingTop;
       const targetPaddingBottom = style.paddingBottom;
+      const originalTransition = style.transition;
+      el.style.transition = 'none';
       el.style.boxSizing = 'border-box';
       el.style.height = '0';
       el.style.paddingTop = '0';
       el.style.paddingBottom = '0';
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
       // Força reflow
       void el.offsetHeight;
+      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
       requestAnimationFrame(() => {
         el.style.height = targetHeight + 'px';
         el.style.paddingTop = targetPaddingTop;
@@ -361,7 +364,7 @@ class KAnime {
           el.style.removeProperty('padding-top');
           el.style.removeProperty('padding-bottom');
           el.style.removeProperty('overflow');
-          el.style.removeProperty('transition');
+          el.style.transition = originalTransition;
           el.style.removeProperty('box-sizing');
         }, this.duration);
       });
