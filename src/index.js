@@ -299,24 +299,30 @@ class KAnime {
   slideUp() {
     return this.each(el => {
       if (window.getComputedStyle(el).display === 'none') return;
+
       const style = window.getComputedStyle(el);
       const originalHeight = el.offsetHeight;
       const originalPaddingTop = style.paddingTop;
       const originalPaddingBottom = style.paddingBottom;
       const originalTransition = style.transition;
+
       el.style.transition = 'none';
       el.style.boxSizing = 'border-box';
       el.style.height = originalHeight + 'px';
       el.style.paddingTop = originalPaddingTop;
       el.style.paddingBottom = originalPaddingBottom;
       el.style.overflow = 'hidden';
+
       // Força reflow
       void el.offsetHeight;
+
       el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
+
       requestAnimationFrame(() => {
         el.style.height = '0';
         el.style.paddingTop = '0';
         el.style.paddingBottom = '0';
+
         setTimeout(() => {
           el.style.display = 'none';
           el.style.removeProperty('height');
@@ -337,28 +343,38 @@ class KAnime {
   slideDown() {
     return this.each(el => {
       if (window.getComputedStyle(el).display !== 'none') return;
+
+      // Primeiro, precisamos tornar o elemento visível para medir os valores reais
       el.style.removeProperty('display');
       let display = window.getComputedStyle(el).display;
       if (display === 'none') display = 'block';
       el.style.display = display;
+
+      // Salva os valores reais de padding
       const style = window.getComputedStyle(el);
       const targetHeight = el.scrollHeight;
       const targetPaddingTop = style.paddingTop;
       const targetPaddingBottom = style.paddingBottom;
       const originalTransition = style.transition;
+
+      // Agora zera para animar do colapsado
       el.style.transition = 'none';
       el.style.boxSizing = 'border-box';
       el.style.height = '0';
       el.style.paddingTop = '0';
       el.style.paddingBottom = '0';
       el.style.overflow = 'hidden';
+
       // Força reflow
       void el.offsetHeight;
+
       el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
+
       requestAnimationFrame(() => {
         el.style.height = targetHeight + 'px';
         el.style.paddingTop = targetPaddingTop;
         el.style.paddingBottom = targetPaddingBottom;
+
         setTimeout(() => {
           el.style.removeProperty('height');
           el.style.removeProperty('padding-top');
