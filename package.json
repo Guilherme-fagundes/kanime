@@ -1,6 +1,6 @@
 {
     "name": "kanime",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A lightweight JavaScript micro-library for DOM manipulation, animations, events, and AJAX, all with no external dependencies.",
     "main": "src/index.js",
     "scripts": {
