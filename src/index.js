@@ -298,44 +298,32 @@ class KAnime {
    */
   slideUp() {
     return this.each(el => {
-      if (window.getComputedStyle(el).display === 'none') {
-        return;
-      }
-
+      if (window.getComputedStyle(el).display === 'none') return;
       const style = window.getComputedStyle(el);
-      const height = el.offsetHeight;
-      const paddingTop = parseFloat(style.paddingTop);
-      const paddingBottom = parseFloat(style.paddingBottom);
-      const marginTop = parseFloat(style.marginTop);
-      const marginBottom = parseFloat(style.marginBottom);
-
-      el.style.height = `${height}px`;
-      el.style.paddingTop = `${paddingTop}px`;
-      el.style.paddingBottom = `${paddingBottom}px`;
-      el.style.marginTop = `${marginTop}px`;
-      el.style.marginBottom = `${marginBottom}px`;
+      const originalHeight = el.offsetHeight;
+      const originalPaddingTop = style.paddingTop;
+      const originalPaddingBottom = style.paddingBottom;
+      const originalDisplay = style.display;
+      el.style.boxSizing = 'border-box';
+      el.style.height = originalHeight + 'px';
+      el.style.paddingTop = originalPaddingTop;
+      el.style.paddingBottom = originalPaddingBottom;
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
-
-      // Trigger reflow to apply transition
+      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
+      // Força reflow
       void el.offsetHeight;
-
       requestAnimationFrame(() => {
         el.style.height = '0';
         el.style.paddingTop = '0';
         el.style.paddingBottom = '0';
-        el.style.marginTop = '0';
-        el.style.marginBottom = '0';
-
         setTimeout(() => {
           el.style.display = 'none';
           el.style.removeProperty('height');
           el.style.removeProperty('padding-top');
           el.style.removeProperty('padding-bottom');
-          el.style.removeProperty('margin-top');
-          el.style.removeProperty('margin-bottom');
           el.style.removeProperty('overflow');
           el.style.removeProperty('transition');
+          el.style.removeProperty('box-sizing');
         }, this.duration);
       });
     });
@@ -347,44 +335,34 @@ class KAnime {
    */
   slideDown() {
     return this.each(el => {
-      if (window.getComputedStyle(el).display !== 'none') {
-        return;
-      }
-
-      el.style.display = 'block';
+      if (window.getComputedStyle(el).display !== 'none') return;
+      el.style.removeProperty('display');
+      let display = window.getComputedStyle(el).display;
+      if (display === 'none') display = 'block';
+      el.style.display = display;
       const style = window.getComputedStyle(el);
-      const height = el.scrollHeight;
-      const paddingTop = parseFloat(style.paddingTop);
-      const paddingBottom = parseFloat(style.paddingBottom);
-      const marginTop = parseFloat(style.marginTop);
-      const marginBottom = parseFloat(style.marginBottom);
-
+      const targetHeight = el.scrollHeight;
+      const targetPaddingTop = style.paddingTop;
+      const targetPaddingBottom = style.paddingBottom;
+      el.style.boxSizing = 'border-box';
       el.style.height = '0';
       el.style.paddingTop = '0';
       el.style.paddingBottom = '0';
-      el.style.marginTop = '0';
-      el.style.marginBottom = '0';
       el.style.overflow = 'hidden';
-      el.style.transition = `height ${this.duration}ms ease-in-out, padding ${this.duration}ms ease-in-out, margin ${this.duration}ms ease-in-out`;
-
-      // Trigger reflow to apply transition
+      el.style.transition = `height ${this.duration}ms, padding ${this.duration}ms`;
+      // Força reflow
       void el.offsetHeight;
-
       requestAnimationFrame(() => {
-        el.style.height = `${height}px`;
-        el.style.paddingTop = `${paddingTop}px`;
-        el.style.paddingBottom = `${paddingBottom}px`;
-        el.style.marginTop = `${marginTop}px`;
-        el.style.marginBottom = `${marginBottom}px`;
-
+        el.style.height = targetHeight + 'px';
+        el.style.paddingTop = targetPaddingTop;
+        el.style.paddingBottom = targetPaddingBottom;
         setTimeout(() => {
           el.style.removeProperty('height');
           el.style.removeProperty('padding-top');
           el.style.removeProperty('padding-bottom');
-          el.style.removeProperty('margin-top');
-          el.style.removeProperty('margin-bottom');
           el.style.removeProperty('overflow');
           el.style.removeProperty('transition');
+          el.style.removeProperty('box-sizing');
         }, this.duration);
       });
     });
