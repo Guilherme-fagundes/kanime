@@ -50,6 +50,122 @@ class KAnime {
     return this;
   }
 
+  // DOM Manipulation Methods
+  /**
+   * Appends content to each selected element.
+   * @param {string|HTMLElement} content - The content to append.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  append(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforeend', content);
+      } else if (content instanceof HTMLElement) {
+        el.appendChild(content);
+      }
+    });
+  }
+
+  /**
+   * Prepends content to each selected element.
+   * @param {string|HTMLElement} content - The content to prepend.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  prepend(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('afterbegin', content);
+      } else if (content instanceof HTMLElement) {
+        el.insertBefore(content, el.firstChild);
+      }
+    });
+  }
+
+  /**
+   * Inserts content before each selected element.
+   * @param {string|HTMLElement} content - The content to insert before.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  before(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforebegin', content);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.insertBefore(content, el);
+      }
+    });
+  }
+
+  /**
+   * Inserts content after each selected element.
+   * @param {string|HTMLElement} content - The content to insert after.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  after(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('afterend', content);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.insertBefore(content, el.nextSibling);
+      }
+    });
+  }
+
+  /**
+   * Removes all selected elements from the DOM.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  remove() {
+    return this.each(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
+
+  /**
+   * Clones the selected elements.
+   * @param {boolean} [deep=true] - Whether to perform a deep clone (including child nodes).
+   * @returns {KAnime} - Returns a new instance containing the cloned elements.
+   */
+  clone(deep = true) {
+    const clones = this.elements.map(el => el.cloneNode(deep));
+    return new KAnime(clones);
+  }
+
+  /**
+   * Wraps each selected element with the specified HTML structure.
+   * @param {string|HTMLElement} wrapper - The HTML structure or element to wrap around the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  wrap(wrapper) {
+    return this.each(el => {
+      const wrapElement = typeof wrapper === 'string'
+        ? document.createElement('div').insertAdjacentHTML('afterbegin', wrapper).firstElementChild
+        : wrapper.cloneNode(true);
+
+      el.parentNode.insertBefore(wrapElement, el);
+      wrapElement.appendChild(el);
+    });
+  }
+
+  /**
+   * Removes the parent of each selected element, keeping the elements in the DOM.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  unwrap() {
+    return this.each(el => {
+      const parent = el.parentNode;
+      if (parent && parent !== document.body) {
+        while (parent.firstChild) {
+          parent.parentNode.insertBefore(parent.firstChild, parent);
+        }
+        parent.parentNode.removeChild(parent);
+      }
+    });
+  }
+
+  // Event Handling Methods
   /**
    * Adds an event listener to the selected elements with support for delegation, multiple events (comma-separated), and custom context.
    * @param {string} events - Event(s) to listen for (e.g., 'click, mouseover'). Multiple events can be separated by commas or spaces.
@@ -82,46 +198,6 @@ class KAnime {
   }
 
   /**
-   * Adds mouse-specific event listeners to the selected elements.
-   * Supports events like 'mouseenter', 'mouseleave', 'mousemove', etc.
-   * @param {string} events - Mouse event(s) to listen for (e.g., 'mouseenter, mouseleave').
-   * @param {Function} handler - The event handler function.
-   * @param {Object} [context=null] - Custom context for the handler (optional).
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  onMouse(events, handler, context = null) {
-    const eventList = events.split(/[\s,]+/); // Split by commas or spaces
-
-    return this.each(el => {
-      eventList.forEach(event => {
-        el.addEventListener(event, e => {
-          handler.call(context || el, e);
-        });
-      });
-    });
-  }
-
-  /**
-   * Adds keyboard-specific event listeners to the selected elements.
-   * Supports events like 'keydown', 'keyup', 'keypress', etc.
-   * @param {string} events - Keyboard event(s) to listen for (e.g., 'keydown, keyup').
-   * @param {Function} handler - The event handler function.
-   * @param {Object} [context=null] - Custom context for the handler (optional).
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  onKey(events, handler, context = null) {
-    const eventList = events.split(/[\s,]+/); // Split by commas or spaces
-
-    return this.each(el => {
-      eventList.forEach(event => {
-        el.addEventListener(event, e => {
-          handler.call(context || el, e);
-        });
-      });
-    });
-  }
-
-  /**
    * Removes an event from all selected elements.
    * @param {string} event - Event name.
    * @param {Function} handler - Function associated with the event.
@@ -148,184 +224,31 @@ class KAnime {
   }
 
   /**
-   * Serializes form data into a string, including disabled fields.
-   * @returns {string} - Serialized form data in key=value format.
+   * Triggers an event on the selected elements.
+   * @param {string} event - The name of the event to trigger.
+   * @returns {KAnime} - Returns the current instance for chaining.
    */
-  serialize() {
-    const form = this.elements[0];
-    if (!(form instanceof HTMLFormElement)) {
-      throw new Error('serialize can only be used on form elements.');
-    }
-
-    const formData = new FormData(form);
-    const params = new URLSearchParams();
-
-    // Include disabled fields
-    Array.from(form.elements).forEach(el => {
-      if (!el.disabled && el.name) {
-        if (el.type === 'checkbox' || el.type === 'radio') {
-          if (el.checked) params.append(el.name, el.value);
-        } else {
-          params.append(el.name, el.value);
-        }
-      }
+  trigger(event) {
+    return this.each(el => {
+      const evt = new Event(event, { bubbles: true, cancelable: true });
+      el.dispatchEvent(evt);
     });
-
-    return params.toString();
   }
 
   /**
-   * Serializes form data into an array of objects, including disabled fields.
-   * @returns {Array} - Array of objects with name and value pairs.
+   * Binds handlers for mouseenter and mouseleave events.
+   * @param {Function} mouseEnterHandler - Handler for the mouseenter event.
+   * @param {Function} mouseLeaveHandler - Handler for the mouseleave event.
+   * @returns {KAnime} - Returns the current instance for chaining.
    */
-  serializeArray() {
-    const form = this.elements[0];
-    if (!(form instanceof HTMLFormElement)) {
-      throw new Error('serializeArray can only be used on form elements.');
-    }
-
-    const serializedArray = [];
-
-    // Include disabled fields
-    Array.from(form.elements).forEach(el => {
-      if (!el.disabled && el.name) {
-        if (el.type === 'checkbox' || el.type === 'radio') {
-          if (el.checked) serializedArray.push({ name: el.name, value: el.value });
-        } else {
-          serializedArray.push({ name: el.name, value: el.value });
-        }
-      }
+  hover(mouseEnterHandler, mouseLeaveHandler) {
+    return this.each(el => {
+      el.addEventListener('mouseenter', mouseEnterHandler);
+      el.addEventListener('mouseleave', mouseLeaveHandler);
     });
-
-    return serializedArray;
   }
 
-  /**
-   * Gets or sets the value of form fields.
-   * @param {string} [value] - Value to set (optional).
-   * @returns {string|Array|KAnime} - Returns the current value(s) or the instance for chaining.
-   */
-  val(value) {
-    if (value === undefined) {
-      if (this.elements[0].type === 'checkbox' || this.elements[0].type === 'radio') {
-        // Return values of checked checkboxes or radio buttons
-        return this.elements.filter(el => el.checked).map(el => el.value);
-      }
-      return this.elements[0].value; // Return value of the first element
-    }
-    return this.each(el => el.value = value); // Set value for all elements
-  }
-
-  /**
-   * Returns serialized form data to be used in URLs (GET).
-   * @returns {string} - Serialized form data.
-   */
-  param() {
-    return this.serialize();
-  }
-
-  /**
-   * Manipulates the style of the selected elements.
-   * @param {string} property - CSS property.
-   * @param {string} [value] - Property value (optional).
-   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
-   */
-  css(property, value) {
-    if (value === undefined) {
-      return window.getComputedStyle(this.elements[0])[property]; // get
-    }
-    return this.each(el => el.style[property] = value); // set
-  }
-
-  /**
-   * Adds a CSS class to all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  addClass(className) {
-    return this.each(el => el.classList.add(className));
-  }
-
-  /**
-   * Removes a CSS class from all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  removeClass(className) {
-    return this.each(el => el.classList.remove(className));
-  }
-
-  /**
-   * Toggles a CSS class on all selected elements.
-   * @param {string} className - Class name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  toggleClass(className) {
-    return this.each(el => el.classList.toggle(className));
-  }
-
-  /**
-   * Shows all selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  show() {
-    return this.each(el => el.style.display = 'block');
-  }
-
-  /**
-   * Hides all selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  hide() {
-    return this.each(el => el.style.display = 'none');
-  }
-
-  /**
-   * Sets or returns the HTML content of the selected elements.
-   * @param {string} [content] - HTML content to be set (optional).
-   * @returns {string|KAnime} - Returns the current content or the instance for chaining.
-   */
-  html(content) {
-    if (content === undefined) {
-      return this.elements[0].innerHTML;
-    }
-    return this.each(el => el.innerHTML = content);
-  }
-
-  /**
-   * Sets or returns the text content of the selected elements.
-   * @param {string} [content] - Text content to be set (optional).
-   * @returns {string|KAnime} - Returns the current text or the instance for chaining.
-   */
-  text(content) {
-    if (content === undefined) {
-      return this.elements[0].innerText;
-    }
-    return this.each(el => el.innerText = content);
-  }
-
-  /**
-   * Sets or returns an attribute of the selected elements.
-   * @param {string} attribute - Attribute name.
-   * @param {string} [value] - Attribute value (optional).
-   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
-   */
-  attr(attribute, value) {
-    if (value === undefined) {
-      return this.elements[0].getAttribute(attribute);
-    }
-    return this.each(el => el.setAttribute(attribute, value));
-  }
-
-  /**
-   * Removes an attribute from the selected elements.
-   * @param {string} attribute - Attribute name.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  removeAttr(attribute) {
-    return this.each(el => el.removeAttribute(attribute));
-  }
-
+  // Animation Methods
   /**
    * Applies a fade-in effect using CSS transitions for better performance.
    * @returns {KAnime} - Returns the current instance for chaining.
@@ -409,127 +332,111 @@ class KAnime {
   }
 
   /**
-   * Checks if any of the selected elements are visible.
-   * @returns {boolean} - Returns true if any element is visible.
-   */
-  isVisible() {
-    return this.elements.some(el => {
-      return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
-    });
-  }
-
-  /**
-   * Checks if any of the selected elements contain a specific class.
-   * @param {string} className - Class name.
-   * @returns {boolean} - Returns true if any element contains the class.
-   */
-  hasClass(className) {
-    return this.elements.some(el => el.classList.contains(className));
-  }
-
-  /**
-   * Checks if any of the selected elements contain a specific attribute.
-   * @param {string} attribute - Attribute name.
-   * @returns {boolean} - Returns true if any element contains the attribute.
-   */
-  hasAttr(attribute) {
-    return this.elements.some(el => el.hasAttribute(attribute));
-  }
-
-  /**
-   * Checks if any of the selected elements are checked (checkboxes or radio buttons).
-   * @returns {boolean} - Returns true if any element is checked.
-   */
-  isChecked() {
-    return this.elements.some(el => el.checked === true);
-  }
-
-  /**
-   * Checks if any of the selected elements are enabled.
-   * @returns {boolean} - Returns true if any element is enabled.
-   */
-  isEnabled() {
-    return this.elements.some(el => !el.disabled);
-  }
-
-  /**
-   * Checks if any of the selected elements are disabled.
-   * @returns {boolean} - Returns true if any element is disabled.
-   */
-  isDisabled() {
-    return this.elements.some(el => el.disabled);
-  }
-
-  /**
-   * Appends content to each selected element.
-   * @param {string|HTMLElement} content - The content to append.
+   * Toggles between fadeIn and fadeOut based on the element's visibility.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
-  append(content) {
+  fadeToggle() {
     return this.each(el => {
-      if (typeof content === 'string') {
-        el.insertAdjacentHTML('beforeend', content);
-      } else if (content instanceof HTMLElement) {
-        el.appendChild(content);
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      if (isHidden) {
+        this.fadeIn();
+      } else {
+        this.fadeOut();
       }
     });
   }
 
   /**
-   * Prepends content to each selected element.
-   * @param {string|HTMLElement} content - The content to prepend.
+   * Toggles between slideUp and slideDown based on the element's visibility.
    * @returns {KAnime} - Returns the current instance for chaining.
    */
-  prepend(content) {
+  slideToggle() {
     return this.each(el => {
-      if (typeof content === 'string') {
-        el.insertAdjacentHTML('afterbegin', content);
-      } else if (content instanceof HTMLElement) {
-        el.insertBefore(content, el.firstChild);
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      if (isHidden) {
+        this.slideDown();
+      } else {
+        this.slideUp();
       }
     });
   }
 
+  // Form Handling Methods
   /**
-   * Inserts content before each selected element.
-   * @param {string|HTMLElement} content - The content to insert before.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Serializes form data into a string, including disabled fields.
+   * @returns {string} - Serialized form data in key=value format.
    */
-  before(content) {
-    return this.each(el => {
-      if (typeof content === 'string') {
-        el.insertAdjacentHTML('beforebegin', content);
-      } else if (content instanceof HTMLElement) {
-        el.parentNode.insertBefore(content, el);
+  serialize() {
+    const form = this.elements[0];
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('serialize can only be used on form elements.');
+    }
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+
+    // Include disabled fields
+    Array.from(form.elements).forEach(el => {
+      if (!el.disabled && el.name) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) params.append(el.name, el.value);
+        } else {
+          params.append(el.name, el.value);
+        }
       }
     });
+
+    return params.toString();
   }
 
   /**
-   * Inserts content after each selected element.
-   * @param {string|HTMLElement} content - The content to insert after.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Serializes form data into an array of objects, including disabled fields.
+   * @returns {Array} - Array of objects with name and value pairs.
    */
-  after(content) {
-    return this.each(el => {
-      if (typeof content === 'string') {
-        el.insertAdjacentHTML('afterend', content);
-      } else if (content instanceof HTMLElement) {
-        el.parentNode.insertBefore(content, el.nextSibling);
+  serializeArray() {
+    const form = this.elements[0];
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error('serializeArray can only be used on form elements.');
+    }
+
+    const serializedArray = [];
+
+    // Include disabled fields
+    Array.from(form.elements).forEach(el => {
+      if (!el.disabled && el.name) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) serializedArray.push({ name: el.name, value: el.value });
+        } else {
+          serializedArray.push({ name: el.name, value: el.value });
+        }
       }
     });
+
+    return serializedArray;
   }
 
   /**
-   * Removes all selected elements from the DOM.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Gets or sets the value of form fields.
+   * @param {string} [value] - Value to set (optional).
+   * @returns {string|Array|KAnime} - Returns the current value(s) or the instance for chaining.
    */
-  remove() {
-    return this.each(el => {
-      if (el.parentNode) {
-        el.parentNode.removeChild(el);
+  val(value) {
+    if (value === undefined) {
+      if (this.elements[0].type === 'checkbox' || this.elements[0].type === 'radio') {
+        // Return values of checked checkboxes or radio buttons
+        return this.elements.filter(el => el.checked).map(el => el.value);
       }
-    });
+      return this.elements[0].value; // Return value of the first element
+    }
+    return this.each(el => el.value = value); // Set value for all elements
+  }
+
+  /**
+   * Returns serialized form data to be used in URLs (GET).
+   * @returns {string} - Serialized form data.
+   */
+  param() {
+    return this.serialize();
   }
 
   /**
@@ -613,6 +520,328 @@ class KAnime {
       }
       throw error;
     }
+  }
+
+  // Attribute and Style Methods
+  /**
+   * Sets or returns an attribute of the selected elements.
+   * @param {string} attribute - Attribute name.
+   * @param {string} [value] - Attribute value (optional).
+   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   */
+  attr(attribute, value) {
+    if (value === undefined) {
+      return this.elements[0].getAttribute(attribute);
+    }
+    return this.each(el => el.setAttribute(attribute, value));
+  }
+
+  /**
+   * Sets or gets multiple attributes for the selected elements.
+   * @param {Object} [attributes] - An object where keys are attribute names and values are attribute values.
+   * @returns {Object|KAnime} - Returns an object with attributes if no argument is provided, or the instance for chaining.
+   */
+  attrs(attributes) {
+    if (attributes === undefined) {
+      const el = this.elements[0];
+      if (!el) return {};
+      return Array.from(el.attributes).reduce((acc, attr) => {
+        acc[attr.name] = attr.value;
+        return acc;
+      }, {});
+    }
+    return this.each(el => {
+      for (const [key, value] of Object.entries(attributes)) {
+        el.setAttribute(key, value);
+      }
+    });
+  }
+
+  /**
+   * Toggles an attribute on the selected elements.
+   * @param {string} attribute - The name of the attribute to toggle.
+   * @param {boolean} [force] - A boolean value to force adding or removing the attribute.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  toggleAttr(attribute, force) {
+    return this.each(el => {
+      if (force === undefined) {
+        if (el.hasAttribute(attribute)) {
+          el.removeAttribute(attribute);
+        } else {
+          el.setAttribute(attribute, '');
+        }
+      } else if (force) {
+        el.setAttribute(attribute, '');
+      } else {
+        el.removeAttribute(attribute);
+      }
+    });
+  }
+
+  /**
+   * Removes an attribute from the selected elements.
+   * @param {string} attribute - Attribute name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  removeAttr(attribute) {
+    return this.each(el => el.removeAttribute(attribute));
+  }
+
+  /**
+   * Manipulates the style of the selected elements.
+   * @param {string} property - CSS property.
+   * @param {string} [value] - Property value (optional).
+   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   */
+  css(property, value) {
+    if (value === undefined) {
+      return window.getComputedStyle(this.elements[0])[property]; // get
+    }
+    return this.each(el => el.style[property] = value); // set
+  }
+
+  /**
+   * Adds a CSS class to all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  addClass(className) {
+    return this.each(el => el.classList.add(className));
+  }
+
+  /**
+   * Removes a CSS class from all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  removeClass(className) {
+    return this.each(el => el.classList.remove(className));
+  }
+
+  /**
+   * Toggles a CSS class on all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  toggleClass(className) {
+    return this.each(el => el.classList.toggle(className));
+  }
+
+  // Utility Methods
+  /**
+   * Checks if the browser supports modern APIs.
+   * @returns {boolean} - Returns true if the browser is compatible.
+   */
+  static isModernBrowser() {
+    return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
+  }
+
+  /**
+   * Throws an error if the browser is not compatible.
+   */
+  static checkCompatibility() {
+    const isCompatible = 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
+
+    if (!isCompatible) {
+      throw new Error('Your browser is incompatible with the KAnime library. Please update to a recent version.');
+    }
+  }
+
+  /**
+   * Creates a KAnime instance based on a selector.
+   * @param {string} selector - CSS selector.
+   * @returns {KAnime} - New KAnime instance.
+   */
+  static select(selector) {
+    return new KAnime(selector);
+  }
+
+  /**
+   * Creates a virtual DOM element with attributes and children.
+   * @param {string} tagName - Tag name of the element.
+   * @param {Object} attributes - Element attributes.
+   * @param {Array} children - Element children.
+   * @returns {HTMLElement} - Created DOM element.
+   */
+  static createVirtualElement(tagName, attributes = {}, children = []) {
+    const element = document.createElement(tagName);
+
+    for (const [key, value] of Object.entries(attributes)) {
+      element.setAttribute(key, value);
+    }
+
+    children.forEach(child => {
+      if (typeof child === 'string') {
+        element.appendChild(document.createTextNode(child));
+      } else {
+        element.appendChild(child);
+      }
+    });
+
+    return element;
+  }
+
+  /**
+   * Extends the target object with properties from source objects.
+   * @param {Object} target - The target object to extend.
+   * @param {...Object} sources - The source objects to copy properties from.
+   * @returns {Object} - Returns the extended target object.
+   */
+  static extend(target, ...sources) {
+    return Object.assign(target, ...sources);
+  }
+
+  /**
+   * Internationalization (i18n) support.
+   * @type {Object}
+   */
+  static i18n = {
+    locale: 'en',
+    translations: {},
+
+    /**
+     * Sets the current language.
+     * @param {string} locale - Language code.
+     */
+    setLocale(locale) {
+      this.locale = locale;
+    },
+
+    /**
+     * Adds translations for a language.
+     * @param {string} locale - Language code.
+     * @param {Object} translations - Translations.
+     */
+    addTranslations(locale, translations) {
+      this.translations[locale] = {
+        ...this.translations[locale],
+        ...translations
+      };
+    },
+
+    /**
+     * Translates a key to the current language.
+     * @param {string} key - Translation key.
+     * @returns {string} - Translation or the key itself if not found.
+     */
+    translate(key) {
+      return this.translations[this.locale]?.[key] || key;
+    }
+  };
+
+  /**
+   * Removes elements from the DOM but keeps their data and events.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  detach() {
+    return this.each(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
+
+  /**
+   * Replaces each selected element with the provided content.
+   * @param {string|HTMLElement} content - The content to replace the selected elements with.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  replaceWith(content) {
+    return this.each(el => {
+      if (typeof content === 'string') {
+        el.insertAdjacentHTML('beforebegin', content);
+        el.parentNode.removeChild(el);
+      } else if (content instanceof HTMLElement) {
+        el.parentNode.replaceChild(content, el);
+      }
+    });
+  }
+
+  /**
+   * Removes all child nodes of the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  empty() {
+    return this.each(el => {
+      while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+    });
+  }
+
+  /**
+   * Selects the closest ancestor of each selected element that matches the selector.
+   * @param {string} selector - A CSS selector to match the ancestor.
+   * @returns {KAnime} - Returns a new instance containing the matched ancestors.
+   */
+  closest(selector) {
+    const ancestors = this.elements.map(el => el.closest(selector)).filter(el => el);
+    return new KAnime(ancestors);
+  }
+
+  /**
+   * Selects the next sibling of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the next siblings.
+   */
+  next() {
+    const nextSiblings = this.elements.map(el => el.nextElementSibling).filter(el => el);
+    return new KAnime(nextSiblings);
+  }
+
+  /**
+   * Selects the previous sibling of each selected element.
+   * @returns {KAnime} - Returns a new instance containing the previous siblings.
+   */
+  prev() {
+    const prevSiblings = this.elements.map(el => el.previousElementSibling).filter(el => el);
+    return new KAnime(prevSiblings);
+  }
+
+  /**
+   * Finds descendants of each selected element that match the selector.
+   * @param {string} selector - A CSS selector to match descendants.
+   * @returns {KAnime} - Returns a new instance containing the matched elements.
+   */
+  find(selector) {
+    const descendants = this.elements.flatMap(el => Array.from(el.querySelectorAll(selector)));
+    return new KAnime(descendants);
+  }
+
+  /**
+   * Stores or retrieves data associated with the selected elements.
+   * @param {string} key - The key for the data.
+   * @param {any} [value] - The value to store (if omitted, retrieves the value).
+   * @returns {any|KAnime} - Returns the stored value or the current instance for chaining.
+   */
+  data(key, value) {
+    if (value === undefined) {
+      return this.elements[0]?.dataset[key];
+    }
+    return this.each(el => {
+      el.dataset[key] = value;
+    });
+  }
+
+  /**
+   * Toggles the visibility of the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  toggle() {
+    return this.each(el => {
+      const isHidden = window.getComputedStyle(el).display === 'none';
+      el.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+
+  /**
+   * Stops the currently running animations on the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
+  stop() {
+    return this.each(el => {
+      el.style.transition = 'none';
+    });
   }
 
   /**
@@ -735,174 +964,6 @@ class KAnime {
   }
 
   /**
-   * Clones the selected elements.
-   * @param {boolean} [deep=true] - Whether to perform a deep clone (including child nodes).
-   * @returns {KAnime} - Returns a new instance containing the cloned elements.
-   */
-  clone(deep = true) {
-    const clones = this.elements.map(el => el.cloneNode(deep));
-    return new KAnime(clones);
-  }
-
-  /**
-   * Wraps each selected element with the specified HTML structure.
-   * @param {string|HTMLElement} wrapper - The HTML structure or element to wrap around the selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  wrap(wrapper) {
-    return this.each(el => {
-      const wrapElement = typeof wrapper === 'string'
-        ? document.createElement('div').insertAdjacentHTML('afterbegin', wrapper).firstElementChild
-        : wrapper.cloneNode(true);
-
-      el.parentNode.insertBefore(wrapElement, el);
-      wrapElement.appendChild(el);
-    });
-  }
-
-  /**
-   * Removes the parent of each selected element, keeping the elements in the DOM.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  unwrap() {
-    return this.each(el => {
-      const parent = el.parentNode;
-      if (parent && parent !== document.body) {
-        while (parent.firstChild) {
-          parent.parentNode.insertBefore(parent.firstChild, parent);
-        }
-        parent.parentNode.removeChild(parent);
-      }
-    });
-  }
-
-  /**
-   * Selects the parent of each selected element.
-   * @returns {KAnime} - Returns a new instance containing the parent elements.
-   */
-  parent() {
-    const parents = this.elements.map(el => el.parentNode).filter((el, index, self) => el && self.indexOf(el) === index);
-    return new KAnime(parents);
-  }
-
-  /**
-   * Selects the children of each selected element.
-   * @returns {KAnime} - Returns a new instance containing the child elements.
-   */
-  children() {
-    const children = this.elements.flatMap(el => Array.from(el.children));
-    return new KAnime(children);
-  }
-
-  /**
-   * Selects the siblings of each selected element.
-   * @returns {KAnime} - Returns a new instance containing the sibling elements.
-   */
-  siblings() {
-    const siblings = this.elements.flatMap(el => Array.from(el.parentNode.children).filter(sibling => sibling !== el));
-    return new KAnime(siblings);
-  }
-
-  /**
-   * Finds descendants of each selected element that match the selector.
-   * @param {string} selector - A CSS selector to match descendants.
-   * @returns {KAnime} - Returns a new instance containing the matched elements.
-   */
-  find(selector) {
-    const descendants = this.elements.flatMap(el => Array.from(el.querySelectorAll(selector)));
-    return new KAnime(descendants);
-  }
-
-  /**
-   * Stores or retrieves data associated with the selected elements.
-   * @param {string} key - The key for the data.
-   * @param {any} [value] - The value to store (if omitted, retrieves the value).
-   * @returns {any|KAnime} - Returns the stored value or the current instance for chaining.
-   */
-  data(key, value) {
-    if (value === undefined) {
-      return this.elements[0]?.dataset[key];
-    }
-    return this.each(el => {
-      el.dataset[key] = value;
-    });
-  }
-
-  /**
-   * Toggles the visibility of the selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  toggle() {
-    return this.each(el => {
-      const isHidden = window.getComputedStyle(el).display === 'none';
-      el.style.display = isHidden ? 'block' : 'none';
-    });
-  }
-
-  /**
-   * Stops the currently running animations on the selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  stop() {
-    return this.each(el => {
-      el.style.transition = 'none';
-    });
-  }
-
-  /**
-   * Checks if the browser supports modern APIs.
-   * @returns {boolean} - Returns true if the browser is compatible.
-   */
-  static isModernBrowser() {
-    return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
-  }
-
-  /**
-   * Throws an error if the browser is not compatible.
-   */
-  static checkCompatibility() {
-    const isCompatible = 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
-
-    if (!isCompatible) {
-      throw new Error('Your browser is incompatible with the KAnime library. Please update to a recent version.');
-    }
-  }
-
-  /**
-   * Creates a KAnime instance based on a selector.
-   * @param {string} selector - CSS selector.
-   * @returns {KAnime} - New KAnime instance.
-   */
-  static select(selector) {
-    return new KAnime(selector);
-  }
-
-  /**
-   * Creates a virtual DOM element with attributes and children.
-   * @param {string} tagName - Tag name of the element.
-   * @param {Object} attributes - Element attributes.
-   * @param {Array} children - Element children.
-   * @returns {HTMLElement} - Created DOM element.
-   */
-  static createVirtualElement(tagName, attributes = {}, children = []) {
-    const element = document.createElement(tagName);
-
-    for (const [key, value] of Object.entries(attributes)) {
-      element.setAttribute(key, value);
-    }
-
-    children.forEach(child => {
-      if (typeof child === 'string') {
-        element.appendChild(document.createTextNode(child));
-      } else {
-        element.appendChild(child);
-      }
-    });
-
-    return element;
-  }
-
-  /**
    * List of registered plugins.
    * @type {Object}
    */
@@ -955,174 +1016,55 @@ class KAnime {
   }
 
   /**
-   * Extends the target object with properties from source objects.
-   * @param {Object} target - The target object to extend.
-   * @param {...Object} sources - The source objects to copy properties from.
-   * @returns {Object} - Returns the extended target object.
+   * Checks if any of the selected elements are visible.
+   * @returns {boolean} - Returns true if any element is visible.
    */
-  static extend(target, ...sources) {
-    return Object.assign(target, ...sources);
-  }
-
-  /**
-   * Internationalization (i18n) support.
-   * @type {Object}
-   */
-  static i18n = {
-    locale: 'en',
-    translations: {},
-
-    /**
-     * Sets the current language.
-     * @param {string} locale - Language code.
-     */
-    setLocale(locale) {
-      this.locale = locale;
-    },
-
-    /**
-     * Adds translations for a language.
-     * @param {string} locale - Language code.
-     * @param {Object} translations - Translations.
-     */
-    addTranslations(locale, translations) {
-      this.translations[locale] = {
-        ...this.translations[locale],
-        ...translations
-      };
-    },
-
-    /**
-     * Translates a key to the current language.
-     * @param {string} key - Translation key.
-     * @returns {string} - Translation or the key itself if not found.
-     */
-    translate(key) {
-      return this.translations[this.locale]?.[key] || key;
-    }
-  };
-
-  /**
-   * Removes elements from the DOM but keeps their data and events.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  detach() {
-    return this.each(el => {
-      if (el.parentNode) {
-        el.parentNode.removeChild(el);
-      }
+  isVisible() {
+    return this.elements.some(el => {
+      return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
     });
   }
 
   /**
-   * Replaces each selected element with the provided content.
-   * @param {string|HTMLElement} content - The content to replace the selected elements with.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Checks if any of the selected elements contain a specific class.
+   * @param {string} className - Class name.
+   * @returns {boolean} - Returns true if any element contains the class.
    */
-  replaceWith(content) {
-    return this.each(el => {
-      if (typeof content === 'string') {
-        el.insertAdjacentHTML('beforebegin', content);
-        el.parentNode.removeChild(el);
-      } else if (content instanceof HTMLElement) {
-        el.parentNode.replaceChild(content, el);
-      }
-    });
+  hasClass(className) {
+    return this.elements.some(el => el.classList.contains(className));
   }
 
   /**
-   * Removes all child nodes of the selected elements.
-   * @returns {KAnime} - Returns the current instance for chaining.
+   * Checks if any of the selected elements contain a specific attribute.
+   * @param {string} attribute - Attribute name.
+   * @returns {boolean} - Returns true if any element contains the attribute.
    */
-  empty() {
-    return this.each(el => {
-      while (el.firstChild) {
-        el.removeChild(el.firstChild);
-      }
-    });
+  hasAttr(attribute) {
+    return this.elements.some(el => el.hasAttribute(attribute));
   }
 
   /**
-   * Selects the closest ancestor of each selected element that matches the selector.
-   * @param {string} selector - A CSS selector to match the ancestor.
-   * @returns {KAnime} - Returns a new instance containing the matched ancestors.
+   * Checks if any of the selected elements are checked (checkboxes or radio buttons).
+   * @returns {boolean} - Returns true if any element is checked.
    */
-  closest(selector) {
-    const ancestors = this.elements.map(el => el.closest(selector)).filter(el => el);
-    return new KAnime(ancestors);
+  isChecked() {
+    return this.elements.some(el => el.checked === true);
   }
 
   /**
-   * Selects the next sibling of each selected element.
-   * @returns {KAnime} - Returns a new instance containing the next siblings.
+   * Checks if any of the selected elements are enabled.
+   * @returns {boolean} - Returns true if any element is enabled.
    */
-  next() {
-    const nextSiblings = this.elements.map(el => el.nextElementSibling).filter(el => el);
-    return new KAnime(nextSiblings);
+  isEnabled() {
+    return this.elements.some(el => !el.disabled);
   }
 
   /**
-   * Selects the previous sibling of each selected element.
-   * @returns {KAnime} - Returns a new instance containing the previous siblings.
+   * Checks if any of the selected elements are disabled.
+   * @returns {boolean} - Returns true if any element is disabled.
    */
-  prev() {
-    const prevSiblings = this.elements.map(el => el.previousElementSibling).filter(el => el);
-    return new KAnime(prevSiblings);
-  }
-
-  /**
-   * Triggers an event on the selected elements.
-   * @param {string} event - The name of the event to trigger.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  trigger(event) {
-    return this.each(el => {
-      const evt = new Event(event, { bubbles: true, cancelable: true });
-      el.dispatchEvent(evt);
-    });
-  }
-
-  /**
-   * Binds handlers for mouseenter and mouseleave events.
-   * @param {Function} mouseEnterHandler - Handler for the mouseenter event.
-   * @param {Function} mouseLeaveHandler - Handler for the mouseleave event.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  hover(mouseEnterHandler, mouseLeaveHandler) {
-    return this.each(el => {
-      el.addEventListener('mouseenter', mouseEnterHandler);
-      el.addEventListener('mouseleave', mouseLeaveHandler);
-    });
-  }
-
-  /**
-   * Toggles between fadeIn and fadeOut based on the element's visibility.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  fadeToggle() {
-    return this.each(el => {
-      const isHidden = window.getComputedStyle(el).display === 'none';
-      if (isHidden) {
-        this.fadeIn();
-      } else {
-        this.fadeOut();
-      }
-    });
-  }
-
-  /**
-   * Toggles between slideUp and slideDown based on the element's visibility.
-   * @returns {KAnime} - Returns the current instance for chaining.
-   */
-  slideToggle() {
-    return this.each(el => {
-      const isHidden = window.getComputedStyle(el).display === 'none';
-      if (isHidden) {
-        this.slideDown();
-      } else {
-        this.slideUp();
-      }
-    });
+  isDisabled() {
+    return this.elements.some(el => el.disabled);
   }
 
   /**
