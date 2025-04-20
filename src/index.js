@@ -7,13 +7,26 @@
 class KAnime {
   /**
    * Creates an instance of KAnime.
-   * @param {string} selector - CSS selector to select DOM elements.
+   * @param {string|HTMLElement|NodeList} selector - CSS selector, HTML element, or NodeList.
    */
   constructor(selector) {
     if (!KAnime.isModernBrowser()) {
       throw new Error('Your browser is incompatible with the KAnime library. Please update to a recent version.');
     }
-    this.elements = Array.from(document.querySelectorAll(selector));
+
+    if (typeof selector === 'string') {
+      // Handle CSS selectors
+      this.elements = Array.from(document.querySelectorAll(selector));
+    } else if (selector instanceof HTMLElement) {
+      // Handle single HTML element
+      this.elements = [selector];
+    } else if (selector instanceof NodeList || Array.isArray(selector)) {
+      // Handle NodeList or array of elements
+      this.elements = Array.from(selector);
+    } else {
+      throw new Error('Invalid selector. Must be a string, HTMLElement, or NodeList.');
+    }
+
     this.duration = 500; // Default duration
   }
 
@@ -602,6 +615,20 @@ class KAnime {
       return this.translations[this.locale]?.[key] || key;
     }
   };
+}
+
+// Define a global function for simplified selection
+/**
+ * Simplified global selection method, similar to jQuery's $().
+ * @param {string|HTMLElement|NodeList} selector - CSS selector, HTML element, or NodeList.
+ * @param {HTMLElement} [context=document] - Context for the selection (optional).
+ * @returns {KAnime} - Returns a new instance of KAnime.
+ */
+const $ = (selector, context = document) => new KAnime(selector, context);
+
+// Attach the global function to the window object (for browser environments)
+if (typeof window !== 'undefined') {
+  window.$ = $;
 }
 
 export default KAnime;
