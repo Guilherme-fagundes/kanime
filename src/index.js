@@ -331,25 +331,26 @@ class KAnime {
       el.style.paddingBottom = originalPaddingBottom;
       el.style.overflow = 'hidden';
 
+      // Força reflow
       void el.offsetHeight;
 
       el.style.transition = `height ${duration}ms, padding ${duration}ms`;
 
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         el.style.height = '0';
         el.style.paddingTop = '0';
         el.style.paddingBottom = '0';
+      }, 10);
 
-        setTimeout(() => {
-          el.style.display = 'none';
-          el.style.removeProperty('height');
-          el.style.removeProperty('padding-top');
-          el.style.removeProperty('padding-bottom');
-          el.style.overflow = originalOverflow;
-          el.style.transition = originalTransition;
-          el.style.removeProperty('box-sizing');
-        }, duration);
-      });
+      setTimeout(() => {
+        el.style.display = 'none';
+        el.style.removeProperty('height');
+        el.style.removeProperty('padding-top');
+        el.style.removeProperty('padding-bottom');
+        el.style.overflow = originalOverflow;
+        el.style.transition = originalTransition;
+        el.style.removeProperty('box-sizing');
+      }, duration + 10);
     });
   }
 
@@ -381,24 +382,25 @@ class KAnime {
       el.style.paddingBottom = '0';
       el.style.overflow = 'hidden';
 
+      // Força reflow
       void el.offsetHeight;
 
       el.style.transition = `height ${duration}ms, padding ${duration}ms`;
 
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         el.style.height = targetHeight + 'px';
         el.style.paddingTop = targetPaddingTop;
         el.style.paddingBottom = targetPaddingBottom;
+      }, 10);
 
-        setTimeout(() => {
-          el.style.removeProperty('height');
-          el.style.removeProperty('padding-top');
-          el.style.removeProperty('padding-bottom');
-          el.style.overflow = originalOverflow;
-          el.style.transition = originalTransition;
-          el.style.removeProperty('box-sizing');
-        }, duration);
-      });
+      setTimeout(() => {
+        el.style.removeProperty('height');
+        el.style.removeProperty('padding-top');
+        el.style.removeProperty('padding-bottom');
+        el.style.overflow = originalOverflow;
+        el.style.transition = originalTransition;
+        el.style.removeProperty('box-sizing');
+      }, duration + 10);
     });
   }
 
@@ -411,9 +413,9 @@ class KAnime {
     return this.each(el => {
       const isHidden = window.getComputedStyle(el).display === 'none';
       if (isHidden) {
-        this.slideDown(duration);
+        this.constructor.prototype.slideDown.call({ elements: [el], duration }, duration);
       } else {
-        this.slideUp(duration);
+        this.constructor.prototype.slideUp.call({ elements: [el], duration }, duration);
       }
     });
   }
