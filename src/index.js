@@ -1,34 +1,68 @@
+/**
+ * KAnime.js - A lightweight library for DOM manipulation, animations, events, and AJAX.
+ * 
+ * @class KAnime
+ * @param {string} selector - A CSS selector to select DOM elements.
+ */
 class KAnime {
+  /**
+   * Creates an instance of KAnime.
+   * @param {string} selector - CSS selector to select DOM elements.
+   */
   constructor(selector) {
     if (!KAnime.isModernBrowser()) {
       throw new Error('Your browser is incompatible with the KAnime library. Please update to a recent version.');
     }
     this.elements = Array.from(document.querySelectorAll(selector));
-    this.duration = 500; // Duração padrão
+    this.duration = 500; // Default duration
   }
 
-  // Encadeamento
+  /**
+   * Iterates over the selected elements and executes a callback.
+   * @param {Function} callback - Function to be executed for each element.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   each(callback) {
     this.elements.forEach(callback);
     return this;
   }
 
-  // Configurar duração
+  /**
+   * Sets the default duration for animations.
+   * @param {number} ms - Duration in milliseconds.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   setDuration(ms) {
     this.duration = ms;
     return this;
   }
 
-  // Manipulação de eventos
+  /**
+   * Adds an event to all selected elements.
+   * @param {string} event - Event name.
+   * @param {Function} handler - Function to be executed when the event occurs.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   on(event, handler) {
     return this.each(el => el.addEventListener(event, handler));
   }
 
-  // Adicionando suporte a eventos 'off' e 'one'
+  /**
+   * Removes an event from all selected elements.
+   * @param {string} event - Event name.
+   * @param {Function} handler - Function associated with the event.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   off(event, handler) {
     return this.each(el => el.removeEventListener(event, handler));
   }
 
+  /**
+   * Adds an event that will be executed only once.
+   * @param {string} event - Event name.
+   * @param {Function} handler - Function to be executed when the event occurs.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   one(event, handler) {
     return this.each(el => {
       const onceHandler = (e) => {
@@ -39,9 +73,10 @@ class KAnime {
     });
   }
 
-  // Manipulação de formulários
-
-  // Serializa os dados do formulário para uma string (chave=valor)
+  /**
+   * Serializes form data into a string in the key=value format.
+   * @returns {string} - Serialized form data.
+   */
   serialize() {
     const formData = new FormData(this.elements[0]);
     const serialized = [];
@@ -51,7 +86,10 @@ class KAnime {
     return serialized.join('&');
   }
 
-  // Serializa os dados do formulário para um array de objetos
+  /**
+   * Serializes form data into an array of objects.
+   * @returns {Array} - Array of objects with form data.
+   */
   serializeArray() {
     const formData = new FormData(this.elements[0]);
     const serializedArray = [];
@@ -61,20 +99,32 @@ class KAnime {
     return serializedArray;
   }
 
-  // Define ou retorna o valor de um campo do formulário
+  /**
+   * Sets or returns the value of a form field.
+   * @param {string} [value] - Value to be set (optional).
+   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   */
   val(value) {
     if (value === undefined) {
-      return this.elements[0].value; // Retorna o valor
+      return this.elements[0].value; // Returns the value
     }
-    return this.each(el => el.value = value); // Define o valor
+    return this.each(el => el.value = value); // Sets the value
   }
 
-  // Adiciona o valor serializado aos parâmetros da URL (para GET)
+  /**
+   * Returns serialized form data to be used in URLs (GET).
+   * @returns {string} - Serialized form data.
+   */
   param() {
     return this.serialize();
   }
 
-  // Manipulação de estilo
+  /**
+   * Manipulates the style of the selected elements.
+   * @param {string} property - CSS property.
+   * @param {string} [value] - Property value (optional).
+   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   */
   css(property, value) {
     if (value === undefined) {
       return window.getComputedStyle(this.elements[0])[property]; // get
@@ -82,29 +132,54 @@ class KAnime {
     return this.each(el => el.style[property] = value); // set
   }
 
-  // Manipulação de classes
+  /**
+   * Adds a CSS class to all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   addClass(className) {
     return this.each(el => el.classList.add(className));
   }
 
+  /**
+   * Removes a CSS class from all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   removeClass(className) {
     return this.each(el => el.classList.remove(className));
   }
 
+  /**
+   * Toggles a CSS class on all selected elements.
+   * @param {string} className - Class name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   toggleClass(className) {
     return this.each(el => el.classList.toggle(className));
   }
 
-  // Mostrar e esconder
+  /**
+   * Shows all selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   show() {
     return this.each(el => el.style.display = 'block');
   }
 
+  /**
+   * Hides all selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   hide() {
     return this.each(el => el.style.display = 'none');
   }
 
-  // Manipulação de conteúdo
+  /**
+   * Sets or returns the HTML content of the selected elements.
+   * @param {string} [content] - HTML content to be set (optional).
+   * @returns {string|KAnime} - Returns the current content or the instance for chaining.
+   */
   html(content) {
     if (content === undefined) {
       return this.elements[0].innerHTML;
@@ -112,6 +187,11 @@ class KAnime {
     return this.each(el => el.innerHTML = content);
   }
 
+  /**
+   * Sets or returns the text content of the selected elements.
+   * @param {string} [content] - Text content to be set (optional).
+   * @returns {string|KAnime} - Returns the current text or the instance for chaining.
+   */
   text(content) {
     if (content === undefined) {
       return this.elements[0].innerText;
@@ -119,7 +199,12 @@ class KAnime {
     return this.each(el => el.innerText = content);
   }
 
-  // Manipulação de atributos
+  /**
+   * Sets or returns an attribute of the selected elements.
+   * @param {string} attribute - Attribute name.
+   * @param {string} [value] - Attribute value (optional).
+   * @returns {string|KAnime} - Returns the current value or the instance for chaining.
+   */
   attr(attribute, value) {
     if (value === undefined) {
       return this.elements[0].getAttribute(attribute);
@@ -127,11 +212,19 @@ class KAnime {
     return this.each(el => el.setAttribute(attribute, value));
   }
 
+  /**
+   * Removes an attribute from the selected elements.
+   * @param {string} attribute - Attribute name.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   removeAttr(attribute) {
     return this.each(el => el.removeAttribute(attribute));
   }
 
-  // FADE IN
+  /**
+   * Applies a fade-in effect to the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   fadeIn() {
     return this.each(el => {
       el.style.opacity = 0;
@@ -151,7 +244,10 @@ class KAnime {
     });
   }
 
-  // FADE OUT
+  /**
+   * Applies a fade-out effect to the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   fadeOut() {
     return this.each(el => {
       el.style.opacity = 1;
@@ -171,7 +267,10 @@ class KAnime {
     });
   }
 
-  // SLIDE UP
+  /**
+   * Applies a slide-up effect to the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   slideUp() {
     return this.each(el => {
       el.style.height = el.offsetHeight + 'px';
@@ -189,7 +288,10 @@ class KAnime {
     });
   }
 
-  // SLIDE DOWN
+  /**
+   * Applies a slide-down effect to the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   slideDown() {
     return this.each(el => {
       el.style.display = 'block';
@@ -208,46 +310,73 @@ class KAnime {
     });
   }
 
-  // Verificações
-
-  // Verifica se o elemento está visível
+  /**
+   * Checks if any of the selected elements are visible.
+   * @returns {boolean} - Returns true if any element is visible.
+   */
   isVisible() {
     return this.elements.some(el => {
       return window.getComputedStyle(el).display !== 'none' && el.offsetHeight > 0;
     });
   }
 
-  // Verifica se o elemento contém uma classe
+  /**
+   * Checks if any of the selected elements contain a specific class.
+   * @param {string} className - Class name.
+   * @returns {boolean} - Returns true if any element contains the class.
+   */
   hasClass(className) {
     return this.elements.some(el => el.classList.contains(className));
   }
 
-  // Verifica se o elemento contém um atributo específico
+  /**
+   * Checks if any of the selected elements contain a specific attribute.
+   * @param {string} attribute - Attribute name.
+   * @returns {boolean} - Returns true if any element contains the attribute.
+   */
   hasAttr(attribute) {
     return this.elements.some(el => el.hasAttribute(attribute));
   }
 
-  // Verifica se o elemento está selecionado (para checkboxes ou radio buttons)
+  /**
+   * Checks if any of the selected elements are checked (checkboxes or radio buttons).
+   * @returns {boolean} - Returns true if any element is checked.
+   */
   isChecked() {
     return this.elements.some(el => el.checked === true);
   }
 
-  // Verifica se o elemento está habilitado
+  /**
+   * Checks if any of the selected elements are enabled.
+   * @returns {boolean} - Returns true if any element is enabled.
+   */
   isEnabled() {
     return this.elements.some(el => !el.disabled);
   }
 
-  // Verifica se o elemento está desabilitado
+  /**
+   * Checks if any of the selected elements are disabled.
+   * @returns {boolean} - Returns true if any element is disabled.
+   */
   isDisabled() {
     return this.elements.some(el => el.disabled);
   }
 
-  // Método de submit padrão
+  /**
+   * Submits the form of the selected elements.
+   * @returns {KAnime} - Returns the current instance for chaining.
+   */
   submit() {
     return this.each(el => el.submit());
   }
 
-  // Método ANIMATE
+  /**
+   * Animates the properties of the selected elements.
+   * @param {Object} properties - Properties to be animated.
+   * @param {number} [duration=this.duration] - Animation duration.
+   * @param {string} [easing='linear'] - Easing type.
+   * @returns {Promise} - Returns a promise that resolves when the animation ends.
+   */
   animate(properties, duration = this.duration, easing = 'linear') {
     return new Promise((resolve) => {
       this.each(el => {
@@ -285,7 +414,12 @@ class KAnime {
     });
   }
 
-  // Função para aplicar easing (simplificada)
+  /**
+   * Function to apply easing (simplified).
+   * @param {number} t - Animation progress (0 to 1).
+   * @param {string} type - Easing type.
+   * @returns {number} - Value adjusted by easing.
+   */
   _ease(t, type) {
     switch (type) {
       case 'linear':
@@ -301,7 +435,15 @@ class KAnime {
     }
   }
 
-  // Adicionando suporte a AJAX moderno
+  /**
+   * Performs an AJAX request.
+   * @param {Object} options - Request options.
+   * @param {string} options.url - Request URL.
+   * @param {string} [options.method='GET'] - HTTP method.
+   * @param {Object} [options.data=null] - Data to be sent.
+   * @param {Object} [options.headers={}] - Request headers.
+   * @returns {Promise} - Returns a promise with the response.
+   */
   ajax({ url, method = 'GET', data = null, headers = {} }) {
     return fetch(url, {
       method,
@@ -318,12 +460,17 @@ class KAnime {
     });
   }
 
-  // Melhorando compatibilidade com navegadores modernos
+  /**
+   * Checks if the browser supports modern APIs.
+   * @returns {boolean} - Returns true if the browser is compatible.
+   */
   static isModernBrowser() {
     return 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
   }
 
-  // Compatibility check for older browsers
+  /**
+   * Throws an error if the browser is not compatible.
+   */
   static checkCompatibility() {
     const isCompatible = 'querySelector' in document && 'addEventListener' in window && 'fetch' in window;
 
@@ -332,12 +479,22 @@ class KAnime {
     }
   }
 
-  // Suporte a seletores avançados
+  /**
+   * Creates a KAnime instance based on a selector.
+   * @param {string} selector - CSS selector.
+   * @returns {KAnime} - New KAnime instance.
+   */
   static select(selector) {
     return new KAnime(selector);
   }
 
-  // Manipulação de DOM Virtual
+  /**
+   * Creates a virtual DOM element with attributes and children.
+   * @param {string} tagName - Tag name of the element.
+   * @param {Object} attributes - Element attributes.
+   * @param {Array} children - Element children.
+   * @returns {HTMLElement} - Created DOM element.
+   */
   static createVirtualElement(tagName, attributes = {}, children = []) {
     const element = document.createElement(tagName);
 
@@ -356,9 +513,17 @@ class KAnime {
     return element;
   }
 
-  // Suporte a plugins
+  /**
+   * List of registered plugins.
+   * @type {Object}
+   */
   static plugins = {};
 
+  /**
+   * Registers a plugin.
+   * @param {string} pluginName - Plugin name.
+   * @param {Function} pluginFunction - Plugin function.
+   */
   static use(pluginName, pluginFunction) {
     if (typeof pluginFunction !== 'function') {
       throw new Error(`Plugin ${pluginName} must be a function.`);
@@ -366,6 +531,12 @@ class KAnime {
     this.plugins[pluginName] = pluginFunction;
   }
 
+  /**
+   * Calls a registered plugin.
+   * @param {string} pluginName - Plugin name.
+   * @param {...any} args - Arguments for the plugin function.
+   * @returns {any} - Returns the result of the plugin function.
+   */
   static callPlugin(pluginName, ...args) {
     if (this.plugins[pluginName]) {
       return this.plugins[pluginName](...args);
@@ -374,10 +545,18 @@ class KAnime {
     }
   }
 
+  /**
+   * Lists all registered plugins.
+   * @returns {Array} - Array with the names of the plugins.
+   */
   static listPlugins() {
     return Object.keys(this.plugins);
   }
 
+  /**
+   * Removes a registered plugin.
+   * @param {string} pluginName - Plugin name.
+   */
   static removePlugin(pluginName) {
     if (this.plugins[pluginName]) {
       delete this.plugins[pluginName];
@@ -386,15 +565,27 @@ class KAnime {
     }
   }
 
-  // Suporte a Internacionalização (i18n)
+  /**
+   * Internationalization (i18n) support.
+   * @type {Object}
+   */
   static i18n = {
     locale: 'en',
     translations: {},
 
+    /**
+     * Sets the current language.
+     * @param {string} locale - Language code.
+     */
     setLocale(locale) {
       this.locale = locale;
     },
 
+    /**
+     * Adds translations for a language.
+     * @param {string} locale - Language code.
+     * @param {Object} translations - Translations.
+     */
     addTranslations(locale, translations) {
       this.translations[locale] = {
         ...this.translations[locale],
@@ -402,6 +593,11 @@ class KAnime {
       };
     },
 
+    /**
+     * Translates a key to the current language.
+     * @param {string} key - Translation key.
+     * @returns {string} - Translation or the key itself if not found.
+     */
     translate(key) {
       return this.translations[this.locale]?.[key] || key;
     }
